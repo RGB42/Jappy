@@ -7,7 +7,7 @@ import { kanaMnemonic } from '../data';
 import { kanaRomaji, kanaRows, rowChars, type KanaScript } from '../data/kana';
 import { maskFromCanvas, maskFromGlyph, scoreDrawing } from '../lib/drawing';
 import { useRoute } from '../lib/router';
-import { addXP, setKanaBox } from '../lib/store';
+import { addXP, countDrawn, setKanaBox } from '../lib/store';
 
 // Gleiche Schrift wie die Vorlage (siehe --font-jp in styles.css).
 const FONT_JP = "'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif";
@@ -101,6 +101,7 @@ export function KanaDraw() {
     const friendly = Math.max(0, Math.min(1, (s - 0.3) / 0.5));
     setScore(friendly);
     setKanaBox(char, friendly >= 0.6);
+    countDrawn();
     addXP(friendly >= 0.6 ? 2 : 1);
     void say(char);
   };

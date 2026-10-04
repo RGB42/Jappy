@@ -3,12 +3,12 @@ import { SpeakButton, SpeechCheck } from '../components/Audio';
 import { LEVELS } from '../data';
 import type { Level } from '../data/types';
 import { sttSupported, ttsSupported } from '../lib/speech';
+import { GoalEditor } from '../components/GoalEditor';
 import { completeOnboarding } from '../lib/store';
 
 export function Onboarding() {
   const [step, setStep] = useState(0);
   const [level, setLevel] = useState<Level>(1);
-  const [goal, setGoal] = useState(50);
 
   return (
     <div className="stack" style={{ paddingTop: 32 }}>
@@ -90,31 +90,16 @@ export function Onboarding() {
 
       {step === 3 && (
         <>
-          <h1>Dein Tagesziel</h1>
-          <p className="muted">Kleine, tägliche Einheiten wirken besser als seltene lange (verteiltes Lernen).</p>
-          <div className="list">
-            {[
-              { xp: 20, label: 'Locker', desc: '≈ 5 Minuten am Tag' },
-              { xp: 50, label: 'Regelmäßig', desc: '≈ 10–15 Minuten am Tag' },
-              { xp: 100, label: 'Intensiv', desc: '≈ 25–30 Minuten am Tag' },
-            ].map((g) => (
-              <button
-                key={g.xp}
-                className="list-item"
-                style={goal === g.xp ? { outline: '2px solid var(--primary)' } : undefined}
-                onClick={() => setGoal(g.xp)}
-              >
-                <span className="grow">
-                  <b>{g.label}</b>
-                  <div className="muted small">{g.desc}</div>
-                </span>
-                <span className="chip">{g.xp} XP</span>
-              </button>
-            ))}
-          </div>
-          <button className="btn btn-primary btn-large btn-block" onClick={() => completeOnboarding(level, goal)}>
-            Starten 🚀
-          </button>
+          <h1>Dein persönliches Ziel</h1>
+          <p className="muted">
+            Ein konkretes Ziel mit Datum hält dich am Ball. Jappy macht daraus einen Plan – mit Tagesquests, Countdown und Prognose.
+          </p>
+          <GoalEditor
+            initialDailyGoal={40}
+            saveLabel="Starten 🚀"
+            onSave={(goal, xp) => completeOnboarding(level, xp, goal)}
+            onSkip={() => completeOnboarding(level, 50, null)}
+          />
         </>
       )}
 

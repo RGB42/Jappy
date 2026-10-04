@@ -1,22 +1,10 @@
 // Fortschritt im Lernpfad.
 import { units, type Step, type Unit } from '../data/curriculum';
+import { isStepDone, isUnitComplete } from './progress';
 import { navigate } from './router';
-import { isKnown, type AppState } from './store';
+import type { AppState } from './store';
 
-export function isStepDone(s: AppState, step: Step): boolean {
-  if (step.type === 'learn') return step.items.every((id) => isKnown(s, id));
-  const entry = s.done[step.key];
-  if (!entry) return false;
-  return step.type === 'kana' ? entry.best >= 0.7 : true;
-}
-
-export function unitProgress(s: AppState, unit: Unit): { done: number; total: number } {
-  return { done: unit.steps.filter((st) => isStepDone(s, st)).length, total: unit.steps.length };
-}
-
-export function isUnitComplete(s: AppState, unit: Unit): boolean {
-  return unit.steps.every((st) => isStepDone(s, st));
-}
+export { isStepDone, isUnitComplete, stationFor, unitProgress } from './progress';
 
 /** Nächster offener Schritt – beginnend beim gewählten Niveau. */
 export function nextStep(s: AppState): { unit: Unit; step: Step } | null {

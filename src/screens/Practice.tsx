@@ -21,6 +21,7 @@ export function Practice() {
         <Tile icon="👂" tone="blue" title="Hörtraining" desc="Wörter & Sätze verstehen" onClick={() => navigate('/listen')} />
         <Tile icon="📻" tone="blue" title="Hörgeschichten" desc="Zuhören & verstehen" onClick={() => navigate('/stories')} />
         <Tile icon="🎵" tone="blue" title="Minimalpaare" desc="Feine Unterschiede hören" onClick={() => navigate('/pairs')} />
+        <Tile icon="⏱️" tone="gold" title="Hör-Blitz" desc={`60 Sekunden · Rekord ${state.records.blitzBest}`} onClick={() => navigate('/blitz')} />
       </div>
 
       <div className="section-title">🎤 Sprechen</div>
@@ -37,8 +38,10 @@ export function Practice() {
         <Tile icon="ア" tone="gold" title="Katakana" desc="Für Lehnwörter" onClick={() => navigate('/kana', { script: 'katakana' })} />
       </div>
 
-      <div className="section-title">📚 Nachschlagen</div>
+      <div className="section-title">📚 Mehr</div>
       <div className="tiles">
+        <Tile icon="🎯" tone="purple" title="Mein Ziel" desc="Countdown, Plan, Reise-Checkliste" onClick={() => navigate('/goal')} />
+        <Tile icon="🛍️" tone="gold" title="Laden" desc={`¥${state.coins.toLocaleString('de-DE')} in der Reisekasse`} onClick={() => navigate('/shop')} />
         <Tile icon="📖" tone="purple" title="Wortschatz" desc="Alle Wörter & Ausdrücke nach Thema – antippen und hören" onClick={() => navigate('/words')} />
         <Tile icon="🧠" tone="purple" title="Wie Jappy lehrt" desc="Die Lernmethoden hinter der App" onClick={() => navigate('/methods')} />
       </div>

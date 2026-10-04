@@ -1,9 +1,11 @@
 // Audio-Bausteine: Vorlesen, Sprechen-Prüfen, eigene Stimme aufnehmen.
 import { useEffect, useRef, useState } from 'react';
+import { bumpCombo } from '../lib/celebrate';
 import { GRADE_LABEL, scoreSpeech, type SpeechScore } from '../lib/compare';
 import { toRomaji } from '../lib/kana';
 import { describeSpeechError, listen, speak, sttSupported, type ListenHandle, type SpeechLang } from '../lib/speech';
-import { countListened, countSpoken, getState, useSettings } from '../lib/store';
+import { sfx } from '../lib/sfx';
+import { countListened, countSpoken, getState, reportCombo, useSettings } from '../lib/store';
 import { Icon } from './Icon';
 
 /** Liest Text mit den Nutzer-Einstellungen vor. */
@@ -129,7 +131,12 @@ export function SpeechCheck({
     const score = scoreSpeech(res.alternatives, targets);
     setResult(score);
     setState('done');
-    countSpoken();
+    countSpoken(score.grade === 'perfect');
+    if (score.grade === 'retry') sfx.wrong();
+    else {
+      sfx.correct();
+      reportCombo(bumpCombo(true));
+    }
     onResult?.(score);
   };
 

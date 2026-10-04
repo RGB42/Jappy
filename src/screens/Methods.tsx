@@ -110,10 +110,34 @@ export const METHODS = [
   {
     icon: '🔥',
     title: 'Kleine Portionen, feste Gewohnheit',
-    theory: 'Microlearning, Gewohnheitsbildung',
+    theory: 'Microlearning, Gewohnheitsschleife (Auslöser → Routine → Belohnung)',
     text: '10 Minuten täglich schlagen 2 Stunden am Wochenende. Lerneinheiten mit 6 neuen Ausdrücken überfordern nicht.',
-    how: 'Tagesziel, Serie (Streak) und kurze Einheiten.',
+    how: 'Tagesziel, Serie mit Streak-Schutz, drei Tagesquests und eine Tageskiste als Belohnung.',
     to: '/',
+  },
+  {
+    icon: '🎯',
+    title: 'Persönliches Ziel mit Datum',
+    theory: 'Zielsetzungstheorie (Locke & Latham)',
+    text: 'Konkrete, terminierte Ziele motivieren deutlich stärker als „ein bisschen Japanisch lernen“.',
+    how: 'Dein Ziel (z. B. Japan-Urlaub) mit Countdown, Plan, Prognose und „Ich kann …“-Checkliste.',
+    to: '/goal',
+  },
+  {
+    icon: '📅',
+    title: 'Wenn-dann-Pläne',
+    theory: 'Implementation Intentions (Gollwitzer)',
+    text: '„Wenn es 19 Uhr ist, übe ich Japanisch.“ Ein fester Auslöser macht das Üben fast automatisch.',
+    how: 'Tägliche Erinnerung als Kalendertermin zu deiner Wunsch-Uhrzeit.',
+    to: '/goal',
+  },
+  {
+    icon: '🎮',
+    title: 'Spielerisch dranbleiben',
+    theory: 'Selbstbestimmungstheorie (Deci & Ryan), Gamification',
+    text: 'Motivation wächst mit Autonomie, Kompetenzerleben und sichtbarem Fortschritt.',
+    how: 'Level & Ränge, Yen-Reisekasse, Abzeichen, Hör-Blitz und eine Reise durch Japan mit Stempelheft.',
+    to: '/profile',
   },
 ];
 

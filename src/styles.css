@@ -1244,3 +1244,520 @@ textarea {
     transition: none !important;
   }
 }
+
+/* =====================================================================
+   Spiel-Elemente
+   ===================================================================== */
+
+/* Farbthemen (im Laden freischaltbar) */
+:root[data-accent='sakura'] {
+  --primary: #d4587f;
+  --primary-soft: #fbe6ee;
+}
+:root[data-accent='matcha'] {
+  --primary: #4f8a3c;
+  --primary-soft: #e6f1df;
+}
+:root[data-accent='ai'] {
+  --primary: #3b5bab;
+  --primary-soft: #e3e9f7;
+}
+:root[data-accent='yuzu'] {
+  --primary: #d9822b;
+  --primary-soft: #fcecd9;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-accent='sakura']:not([data-theme='light']) {
+    --primary: #f07fa3;
+    --primary-soft: #3d2230;
+  }
+  :root[data-accent='matcha']:not([data-theme='light']) {
+    --primary: #7cc062;
+    --primary-soft: #1f3019;
+  }
+  :root[data-accent='ai']:not([data-theme='light']) {
+    --primary: #7d9cf0;
+    --primary-soft: #1f2640;
+  }
+  :root[data-accent='yuzu']:not([data-theme='light']) {
+    --primary: #f2a656;
+    --primary-soft: #3a2a17;
+  }
+}
+:root[data-theme='dark'][data-accent='sakura'] {
+  --primary: #f07fa3;
+  --primary-soft: #3d2230;
+}
+:root[data-theme='dark'][data-accent='matcha'] {
+  --primary: #7cc062;
+  --primary-soft: #1f3019;
+}
+:root[data-theme='dark'][data-accent='ai'] {
+  --primary: #7d9cf0;
+  --primary-soft: #1f2640;
+}
+:root[data-theme='dark'][data-accent='yuzu'] {
+  --primary: #f2a656;
+  --primary-soft: #3a2a17;
+}
+
+.yen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 800;
+  border-radius: 99px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+.header-chips {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.header-chips button {
+  border: 0;
+}
+
+/* Toasts */
+.toasts {
+  position: fixed;
+  top: calc(10px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 80;
+  pointer-events: none;
+  padding: 0 16px;
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 460px);
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 18%);
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.92rem;
+  animation: toast-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.toast-icon {
+  font-size: 1.5rem;
+}
+@keyframes toast-in {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Feier-Dialog */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 45%);
+  display: grid;
+  place-items: center;
+  z-index: 70;
+  padding: 16px;
+  animation: fade-in 0.2s ease;
+}
+.modal {
+  width: min(100%, 400px);
+  text-align: center;
+  animation: pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1);
+  position: relative;
+  z-index: 2;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+.modal > * + * {
+  margin-top: 10px;
+}
+.modal-icon {
+  font-size: 4rem;
+  line-height: 1.1;
+}
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.confetti i {
+  position: absolute;
+  top: -20px;
+  border-radius: 2px;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  to {
+    transform: translateY(105vh) rotate(720deg);
+    opacity: 0.9;
+  }
+}
+
+/* Stempel */
+.stamp {
+  width: 76px;
+  height: 76px;
+  border-radius: 99px;
+  border: 3px solid var(--primary);
+  color: var(--primary);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  line-height: 1;
+  transform: rotate(-8deg);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.stamp small {
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-top: 4px;
+  font-family: var(--font-jp);
+}
+.stamp.locked {
+  border-style: dashed;
+  border-color: var(--border);
+  color: var(--muted);
+  filter: grayscale(1);
+  opacity: 0.55;
+  background: transparent;
+  box-shadow: none;
+}
+.stamp-big {
+  width: 120px;
+  height: 120px;
+  font-size: 3rem;
+  animation: stamp-in 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.stamp-big small {
+  font-size: 1rem;
+}
+@keyframes stamp-in {
+  from {
+    transform: rotate(-30deg) scale(2.2);
+    opacity: 0;
+  }
+}
+.stamp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 8px;
+  justify-items: center;
+  text-align: center;
+}
+.stamp-grid .stamp {
+  width: 62px;
+  height: 62px;
+  font-size: 1.4rem;
+}
+.stamp-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Quests */
+.quest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+.quest + .quest {
+  border-top: 1px solid var(--border);
+}
+.quest-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.quest.done .quest-icon {
+  background: var(--ok-soft);
+}
+.quest.done .quest-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.quest .progress {
+  height: 6px;
+  margin-top: 4px;
+}
+
+/* Maskottchen */
+.mascot {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.mascot-face {
+  font-size: 2.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  animation: bob 2.8s ease-in-out infinite;
+}
+@keyframes bob {
+  50% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+}
+.mascot-bubble {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 16px 4px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ziel */
+.goal-card {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 65%, #10233b));
+  color: #fff;
+  border: 0;
+}
+.goal-card .muted {
+  color: rgb(255 255 255 / 80%);
+}
+.goal-card .progress {
+  background: rgb(255 255 255 / 25%);
+}
+.goal-card .progress-fill {
+  background: #fff;
+}
+.countdown-big {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.skill-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.milestone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 9px 4px;
+  border-radius: 10px;
+}
+.milestone:hover {
+  background: var(--surface-2);
+}
+.milestone.done .milestone-label {
+  color: var(--muted);
+}
+.choice-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  background: var(--surface);
+}
+.choice-card.selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.chip-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 99px;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+.chip-toggle.on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+input[type='date'],
+input[type='time'],
+input[type='text'] {
+  font: inherit;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+}
+
+/* Kalender-Heatmap */
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.heat {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+.heat.l1 {
+  background: color-mix(in srgb, var(--primary) 30%, var(--surface-2));
+}
+.heat.l2 {
+  background: color-mix(in srgb, var(--primary) 60%, var(--surface-2));
+}
+.heat.l3 {
+  background: var(--primary);
+}
+.heat.today {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+/* Abzeichen & Laden */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (min-width: 560px) {
+  .badge-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.ach {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+.ach-icon {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+.ach.locked {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.shop-icon {
+  font-size: 2.2rem;
+  line-height: 1.1;
+}
+.suitcase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.suitcase button {
+  font-size: 1.8rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Hör-Blitz */
+.timer-bar {
+  height: 10px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ok), var(--warn), var(--bad));
+  background-size: 300% 100%;
+  transition: width 0.25s linear;
+}
+.score-big {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+.combo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: var(--warn);
+  animation: pop 0.3s ease;
+}

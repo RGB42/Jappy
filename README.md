@@ -16,7 +16,10 @@ Läuft im Browser auf Handy und PC, offline-fähig, ohne Konto – der Fortschri
 | 👂 Hörtraining & Minimalpaare | Wörter/Sätze verstehen, おばさん vs. おばあさん unterscheiden | Ohrtraining |
 | 🧩 Grammatik & Satzbau | 30 Muster: Beispiele hören, Sätze aus Bausteinen bauen | Entdeckendes Lernen, sofortiges Feedback |
 | あ Kana | Zeichen hören, lesen, mit dem Finger schreiben (mit Bewertung) | Duale Kodierung, Eselsbrücken, Leitner-System |
-| 🗺️ Lernpfad | 18+ Einheiten mit Kann-Zielen auf drei Niveaus | Interleaving, kleine Portionen |
+| 🗺️ Lernpfad | 20 Einheiten mit Kann-Zielen auf drei Niveaus – als Reise durch Japan | Interleaving, kleine Portionen |
+| 🎯 Persönliches Ziel | Zieltyp, Datum, Fähigkeiten, „Mein Warum“ → Plan, Prognose, Reise-Checkliste | Zielsetzungstheorie |
+| 🎮 Spielerisch | Level & Ränge, 3 Tagesquests + Tageskiste, Yen-Reisekasse & Laden, 27 Abzeichen, Stempelheft, Streak-Schutz, Hör-Blitz, Combos | Gewohnheitsschleife, Selbstbestimmungstheorie |
+| 📅 Erinnerung | täglicher Kalendertermin (.ics) zur Wunsch-Uhrzeit | Wenn-dann-Pläne |
 
 Sprechübungen nutzen die Spracherkennung des Browsers (Chrome/Edge, Safari) und geben sofort Feedback.
 Ohne Spracherkennung: eigene Stimme aufnehmen und selbst vergleichen.

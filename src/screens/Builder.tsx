@@ -1,7 +1,7 @@
 // Satzbau: Bausteine antippen und in die richtige Reihenfolge bringen (Lernen durch Ausprobieren).
 import { useMemo, useState } from 'react';
 import { SpeakButton, SpeechCheck, say } from '../components/Audio';
-import { Feedback } from '../components/Quiz';
+import { Feedback, registerAnswer } from '../components/Quiz';
 import { Finish, Header, JpText, ProgressBar, shuffle } from '../components/ui';
 import { grammar, grammarById } from '../data';
 import type { BuildExercise, Level, Sentence, Tile } from '../data/types';
@@ -95,6 +95,7 @@ function Exercise({ ex, onDone }: { ex: BuildExercise; onDone: (ok: boolean) => 
     const built = answer.map((id) => tileById(id).jp).join('');
     const ok = built === ex.tiles.map((t) => t.jp).join('');
     setResult(ok);
+    registerAnswer(ok);
     void say(sentence.jp);
   };
 

@@ -4,7 +4,7 @@ import { Header, ProgressBar, Segmented } from '../components/ui';
 import { LEVELS } from '../data';
 import { units } from '../data/curriculum';
 import type { Level } from '../data/types';
-import { STEP_ICON, currentUnit, isStepDone, isUnitComplete, openStep, unitProgress } from '../lib/path';
+import { STEP_ICON, currentUnit, isStepDone, isUnitComplete, openStep, stationFor, unitProgress } from '../lib/path';
 import { useAppState } from '../lib/store';
 
 export function Path() {
@@ -16,7 +16,7 @@ export function Path() {
 
   return (
     <>
-      <Header title="Lernpfad" subtitle={LEVELS[level].desc} onBack={false} />
+      <Header title="Lernpfad" subtitle={`Deine Reise durch Japan · ${LEVELS[level].desc}`} onBack={false} />
       <Segmented
         value={level}
         onChange={(v) => {
@@ -31,9 +31,10 @@ export function Path() {
           const complete = isUnitComplete(state, u);
           const isCurrent = current?.id === u.id && !complete;
           const expanded = open === u.id;
+          const station = stationFor(u);
           return (
             <div key={u.id} className={`unit ${complete ? 'complete' : ''} ${isCurrent ? 'current' : ''}`}>
-              <span className="unit-dot">{complete ? '✓' : idx + 1}</span>
+              <span className="unit-dot">{complete ? station.emoji : idx + 1}</span>
               <div className="card" style={isCurrent ? { borderColor: 'var(--primary)' } : undefined}>
                 <button
                   className="btn-block"
@@ -47,8 +48,11 @@ export function Path() {
                       {p.done}/{p.total}
                     </span>
                   </div>
-                  <div className="muted small" style={{ margin: '4px 0 8px' }}>
+                  <div className="muted small" style={{ margin: '4px 0 2px' }}>
                     🎯 {u.goal}
+                  </div>
+                  <div className="small" style={{ margin: '0 0 8px', color: complete ? 'var(--ok)' : 'var(--accent)' }}>
+                    {complete ? '✓ Stempel erhalten:' : '🚄 Nächste Station:'} {station.emoji} {station.name} <span lang="ja">{station.jp}</span>
                   </div>
                   <ProgressBar value={p.done} max={p.total} />
                 </button>

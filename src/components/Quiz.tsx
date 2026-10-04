@@ -1,7 +1,17 @@
 // Multiple-Choice-Baustein: Antwort wählen, sofortiges Feedback.
 import { useState, type ReactNode } from 'react';
 import type { LearnItem } from '../data/types';
+import { bumpCombo } from '../lib/celebrate';
+import { sfx } from '../lib/sfx';
+import { reportCombo } from '../lib/store';
 import { shuffle } from './ui';
+
+/** Sound + Combo-Zähler für jede beantwortete Frage. */
+export function registerAnswer(ok: boolean) {
+  if (ok) sfx.correct();
+  else sfx.wrong();
+  reportCombo(bumpCombo(ok));
+}
 
 export function Choices({
   options,
@@ -9,12 +19,15 @@ export function Choices({
   onAnswer,
   kana = false,
   columns = 1,
+  silent = false,
 }: {
   options: string[];
   correct: string;
   onAnswer: (ok: boolean, chosen: string) => void;
   kana?: boolean;
   columns?: 1 | 2;
+  /** true: Sound/Combo übernimmt der Aufrufer */
+  silent?: boolean;
 }) {
   const [chosen, setChosen] = useState<string | null>(null);
   return (
@@ -28,6 +41,7 @@ export function Choices({
             disabled={chosen !== null}
             onClick={() => {
               setChosen(o);
+              if (!silent) registerAnswer(o === correct);
               onAnswer(o === correct, o);
             }}
             lang={kana ? 'ja' : undefined}

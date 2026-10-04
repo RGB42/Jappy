@@ -1,9 +1,11 @@
 // Allgemeine UI-Bausteine.
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { Sentence } from '../data/types';
 import { toRomaji } from '../lib/kana';
 import { back } from '../lib/router';
+import { sfx } from '../lib/sfx';
 import { useSettings } from '../lib/store';
+import { Confetti } from './Confetti';
 import { Icon } from './Icon';
 
 const hasKanji = (s: string) => /[一-鿿々]/.test(s);
@@ -166,8 +168,13 @@ export function Finish({
   xp?: number;
   children?: ReactNode;
 }) {
+  const great = score === undefined || score >= 0.8;
+  useEffect(() => {
+    if (great) sfx.fanfare();
+  }, [great]);
   return (
     <div className="finish">
+      {great && <Confetti count={36} />}
       <div className="finish-emoji">{score === undefined || score >= 0.8 ? '🎉' : score >= 0.5 ? '👍' : '💪'}</div>
       <h2>{title}</h2>
       {score !== undefined && <div className="finish-score">{Math.round(score * 100)} %</div>}

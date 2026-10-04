@@ -1,5 +1,5 @@
 // Fortschritt: Serie, XP-Verlauf, Wortschatz, Kana-Beherrschung.
-import { Header, ProgressBar } from '../components/ui';
+import { ProgressBar } from '../components/ui';
 import { LEVELS, allItems } from '../data';
 import { allKana } from '../data/kana';
 import type { Level } from '../data/types';
@@ -7,7 +7,8 @@ import { DAY, dayKey, isMature } from '../lib/srs';
 import { navigate } from '../lib/router';
 import { currentStreak, isKnown, useAppState } from '../lib/store';
 
-export function Stats() {
+/** Statistik-Abschnitte (im Profil eingebettet). */
+export function StatsSections() {
   const state = useAppState();
   const cards = Object.values(state.cards);
   const known = allItems.filter((i) => isKnown(state, i.id)).length;
@@ -21,7 +22,7 @@ export function Stats() {
 
   return (
     <>
-      <Header title="Fortschritt" onBack={false} />
+      <div className="section-title">Statistik</div>
       <div className="stat-grid">
         <div className="stat">
           <div className="stat-value">🔥 {currentStreak(state)}</div>

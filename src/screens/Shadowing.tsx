@@ -7,7 +7,7 @@ import { Header, JpText, ProgressBar, Segmented, sample } from '../components/ui
 import { sentencePool } from '../data';
 import type { Level } from '../data/types';
 import { wait } from '../lib/speech';
-import { addXP, markDone, useAppState } from '../lib/store';
+import { addXP, countShadow, markDone, useAppState } from '../lib/store';
 
 const COUNT = 8;
 
@@ -133,6 +133,7 @@ export function Shadowing() {
           targets={[s.jp, s.kana]}
           onResult={(r) => {
             addXP(r.grade === 'retry' ? 1 : 3);
+            countShadow();
             if (r.grade === 'retry') setShowText(true);
           }}
         />

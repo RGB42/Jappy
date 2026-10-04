@@ -5,6 +5,7 @@ import { Header, Segmented } from '../components/ui';
 import { LEVELS } from '../data';
 import type { Level } from '../data/types';
 import { getVoices, onVoicesChanged, sttSupported, ttsSupported } from '../lib/speech';
+import { downloadReminder } from '../lib/reminder';
 import { navigate } from '../lib/router';
 import { exportProgress, importProgress, resetAll, setLevel, updateSettings, useAppState } from '../lib/store';
 
@@ -67,6 +68,13 @@ export function Settings() {
           </span>
           <input type="checkbox" checked={s.autoPlay} onChange={(e) => updateSettings({ autoPlay: e.target.checked })} />
         </label>
+        <label className="field switch-row">
+          <span>
+            <span className="field-label">Sound-Effekte</span>
+            <div className="muted small">Kurze Töne bei richtig/falsch, Serien und Belohnungen.</div>
+          </span>
+          <input type="checkbox" checked={s.sound} onChange={(e) => updateSettings({ sound: e.target.checked })} />
+        </label>
         <div className="field small muted">
           Spracherkennung: {sttSupported() ? '✅ verfügbar' : '❌ nicht verfügbar (Chrome/Edge oder Safari nutzen)'}
         </div>
@@ -116,6 +124,22 @@ export function Settings() {
 
       <div className="section-title">Lernen</div>
       <div className="card">
+        <div className="field">
+          <span className="field-label">Persönliches Ziel</span>
+          <div className="muted small">{state.goal ? `${state.goal.title} · bis ${state.goal.targetDate.split('-').reverse().join('.')}` : 'Noch kein Ziel festgelegt'}</div>
+          <button className="btn btn-small" onClick={() => navigate('/goal', state.goal ? { edit: 1 } : undefined)}>
+            🎯 {state.goal ? 'Ziel ändern' : 'Ziel festlegen'}
+          </button>
+        </div>
+        <div className="field">
+          <span className="field-label">Tägliche Erinnerung</span>
+          <div className="row gap">
+            <input type="time" value={s.reminder} onChange={(e) => e.target.value && updateSettings({ reminder: e.target.value })} style={{ maxWidth: 140 }} aria-label="Uhrzeit" />
+            <button className="btn btn-small grow" onClick={() => downloadReminder(s.reminder, state.goal?.targetDate)}>
+              📅 In Kalender eintragen
+            </button>
+          </div>
+        </div>
         <div className="field">
           <span className="field-label">Niveau</span>
           <Segmented

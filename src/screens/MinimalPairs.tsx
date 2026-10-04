@@ -1,7 +1,7 @@
 // Minimalpaare: feine Lautunterschiede hören (langer Vokal, Doppelkonsonant …).
 import { useMemo, useState } from 'react';
 import { SpeakButton, say } from '../components/Audio';
-import { Feedback } from '../components/Quiz';
+import { Feedback, registerAnswer } from '../components/Quiz';
 import { Finish, Header, JpText, ProgressBar, sample } from '../components/ui';
 import { minimalPairs } from '../data';
 import { addXP, markDone } from '../lib/store';
@@ -43,6 +43,7 @@ function PairRound({ onAgain }: { onAgain: () => void }) {
   const answer = (side: 'a' | 'b') => {
     if (chosen) return;
     setChosen(side);
+    registerAnswer(side === target);
     if (side === target) setCorrect((c) => c + 1);
   };
 
