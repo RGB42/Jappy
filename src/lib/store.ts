@@ -33,6 +33,9 @@ export interface Settings {
   sound: boolean; // Sound-Effekte
   accent: string; // Farbthema (siehe THEMES)
   reminder: string; // Uhrzeit für die tägliche Erinnerung, z. B. "19:00"
+  audioSource: 'clips' | 'browser'; // eingebaute Aufnahmen oder Browser-Stimme
+  whisper: 'off' | 'fast'; // Offline-Spracherkennung (KI-Modell im Browser)
+  sttEngine: 'auto' | 'whisper'; // auto = Browser-Erkennung, falls vorhanden
 }
 
 export interface DoneEntry {
@@ -92,6 +95,9 @@ export const defaultSettings: Settings = {
   sound: true,
   accent: 'beni',
   reminder: '19:00',
+  audioSource: 'clips',
+  whisper: 'off',
+  sttEngine: 'auto',
 };
 
 const defaultRecords: Records = {

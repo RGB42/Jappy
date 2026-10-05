@@ -4,22 +4,11 @@ import { SpeakButton, SpeechCheck, say } from '../components/Audio';
 import { Feedback, registerAnswer } from '../components/Quiz';
 import { Finish, Header, JpText, ProgressBar, shuffle } from '../components/ui';
 import { grammar, grammarById } from '../data';
-import type { BuildExercise, Level, Sentence, Tile } from '../data/types';
+import type { BuildExercise, Level, Tile } from '../data/types';
+import { PARTICLE_SOUND, exerciseSentence } from '../lib/sentences';
 import { toRomaji } from '../lib/kana';
 import { back, useRoute } from '../lib/router';
 import { addXP, markDone, useSettings } from '../lib/store';
-
-// Einzeln vorgelesen klingen diese Partikeln sonst wie „ha/he/wo“.
-const PARTICLE_SOUND: Record<string, string> = { は: 'わ', へ: 'え', を: 'お' };
-
-export function exerciseSentence(ex: BuildExercise): Sentence {
-  const end = /[?？]\s*$/.test(ex.de) ? '？' : '。';
-  return {
-    jp: ex.tiles.map((t) => t.jp).join('') + end,
-    kana: ex.tiles.map((t) => t.kana).join(' ') + end,
-    de: ex.de,
-  };
-}
 
 export function Builder() {
   const { params } = useRoute();

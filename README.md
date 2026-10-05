@@ -21,8 +21,29 @@ Läuft im Browser auf Handy und PC, offline-fähig, ohne Konto – der Fortschri
 | 🎮 Spielerisch | Level & Ränge, 3 Tagesquests + Tageskiste, Yen-Reisekasse & Laden, 27 Abzeichen, Stempelheft, Streak-Schutz, Hör-Blitz, Combos | Gewohnheitsschleife, Selbstbestimmungstheorie |
 | 📅 Erinnerung | täglicher Kalendertermin (.ics) zur Wunsch-Uhrzeit | Wenn-dann-Pläne |
 
-Sprechübungen nutzen die Spracherkennung des Browsers (Chrome/Edge, Safari) und geben sofort Feedback.
-Ohne Spracherkennung: eigene Stimme aufnehmen und selbst vergleichen.
+### Audio & Spracherkennung – in jedem Browser (auch Firefox)
+
+- **Natürliche Aufnahmen:** Alle ~2.000 japanischen Texte sind als Audiodateien eingebaut (VOICEVOX, zwei Stimmen:
+  Hauptstimme + zweite Stimme für Dialogpartner). Kein Systemstimmen-Problem mehr, gleiche Qualität überall,
+  offline speicherbar (Einstellungen → „Alle Aufnahmen offline speichern“). Formate: Opus (Firefox, Chrome) und MP3 (Safari).
+- **Spracherkennung:** Chrome/Edge/Safari nutzen ihre eingebaute Erkennung. Browser ohne Erkennung (Firefox) laden
+  einmalig eine KI (Moonshine-Japanisch, ≈ 65 MB), die lokal im Browser läuft – die Stimme verlässt das Gerät nicht.
+- Fallback ohne Mikrofon-Erkennung: eigene Stimme aufnehmen und selbst vergleichen.
+
+Stimmen: **VOICEVOX:No.7**, **VOICEVOX:青山龍星** · Spracherkennung: [Moonshine](https://github.com/usefulsensors/moonshine) via transformers.js
+
+### Audio neu erzeugen (nach Inhaltsänderungen)
+
+`src/lib/audio.test.ts` schlägt fehl, wenn ein neuer Text keine Aufnahme hat. Dann:
+
+```bash
+npm run audio:collect                       # Textliste → scripts/speech-corpus.json
+VOICEVOX_DIR=/pfad/zu/voicevox python3 scripts/generate_audio.py
+```
+
+`VOICEVOX_DIR` enthält `voicevox_onnxruntime-linux-x64-1.17.3/`, `open_jtalk_dic_utf_8-1.11/` und `vvms/` (Modelle 6 und 15)
+aus den [VOICEVOX-Core-Releases](https://github.com/VOICEVOX/voicevox_core/releases); `pip install voicevox_core`-Wheel, ffmpeg.
+Kanji-Lesungen werden automatisch gegen die Kana der Lerninhalte geprüft (`scripts/reading-fixes.json`).
 
 Details zu den Lernkonzepten: [docs/LERNKONZEPT.md](docs/LERNKONZEPT.md)
 

@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react()],
   // Alle Lerninhalte sind bewusst im Bundle (offline nutzbar) – daher größer als üblich.
   build: { chunkSizeWarningLimit: 1200 },
+  // Spracherkennungs-Worker (transformers.js) als ES-Modul bauen.
+  worker: { format: 'es' },
   test: {
     environment: 'node',
   },

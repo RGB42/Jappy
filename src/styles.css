@@ -1761,3 +1761,10 @@ input[type='text'] {
   color: var(--warn);
   animation: pop 0.3s ease;
 }
+
+/* Schalter-Zeilen in Einstellungen: Text links, Schalter rechts */
+.field.switch-row {
+  flex-direction: row;
+  align-items: center;
+  text-align: left;
+}

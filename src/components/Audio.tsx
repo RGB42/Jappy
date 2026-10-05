@@ -1,5 +1,7 @@
 // Audio-Bausteine: Vorlesen, Sprechen-Prüfen, eigene Stimme aufnehmen.
 import { useEffect, useRef, useState } from 'react';
+import type { AudioVoice } from '../lib/audioKey';
+import { playClip } from '../lib/audioBank';
 import { bumpCombo } from '../lib/celebrate';
 import { GRADE_LABEL, scoreSpeech, type SpeechScore } from '../lib/compare';
 import { toRomaji } from '../lib/kana';
@@ -7,11 +9,19 @@ import { describeSpeechError, listen, speak, sttSupported, type ListenHandle, ty
 import { sfx } from '../lib/sfx';
 import { countListened, countSpoken, getState, reportCombo, useSettings } from '../lib/store';
 import { Icon } from './Icon';
+import { WhisperSetup } from './WhisperSetup';
 
 /** Liest Text mit den Nutzer-Einstellungen vor. */
-export function say(text: string, opts: { slow?: boolean; lang?: SpeechLang } = {}): Promise<void> {
-  const { rate, voiceURI } = getState().settings;
-  return speak(text, { lang: opts.lang ?? 'ja-JP', rate: opts.slow ? Math.max(0.5, rate * 0.65) : rate, voiceURI });
+/**
+ * Liest Text vor: bevorzugt die eingebauten Aufnahmen (natürliche Stimme, jeder Browser),
+ * sonst die Sprachausgabe des Browsers.
+ */
+export async function say(text: string, opts: { slow?: boolean; lang?: SpeechLang; voice?: AudioVoice } = {}): Promise<void> {
+  const { rate, voiceURI, audioSource } = getState().settings;
+  const lang = opts.lang ?? 'ja-JP';
+  const r = opts.slow ? Math.max(0.5, rate * 0.7) : rate;
+  if (lang === 'ja-JP' && audioSource === 'clips' && (await playClip(text, { voice: opts.voice, rate: r }))) return;
+  return speak(text, { lang, rate: r, voiceURI });
 }
 
 export function SpeakButton({
@@ -21,9 +31,11 @@ export function SpeakButton({
   slowButton = false,
   autoPlay = false,
   lang = 'ja-JP',
+  voice,
   onPlayed,
 }: {
   text: string;
+  voice?: AudioVoice;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   label?: string;
   slowButton?: boolean;
@@ -36,7 +48,7 @@ export function SpeakButton({
 
   const play = async (slow = false) => {
     setPlaying(slow ? 'slow' : 'normal');
-    await say(text, { slow, lang });
+    await say(text, { slow, lang, voice });
     setPlaying(null);
     countListened();
     onPlayed?.();
@@ -97,6 +109,7 @@ export function SpeechCheck({
   const [result, setResult] = useState<SpeechCheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const handle = useRef<ListenHandle | null>(null);
+  useSettings(); // neu rendern, wenn die Offline-Spracherkennung aktiviert wird
   const key = targets.join('|');
 
   useEffect(() => {
@@ -108,7 +121,12 @@ export function SpeechCheck({
   }, [key]);
 
   if (!sttSupported()) {
-    return <SelfRecord compact={compact} onRated={(ok) => onResult?.({ score: ok ? 1 : 0.4, grade: ok ? 'good' : 'retry', heard: '', selfRated: true })} />;
+    return (
+      <div className="stack">
+        <SelfRecord compact={compact} onRated={(ok) => onResult?.({ score: ok ? 1 : 0.4, grade: ok ? 'good' : 'retry', heard: '', selfRated: true })} />
+        <WhisperSetup compact />
+      </div>
+    );
   }
 
   const start = async () => {
@@ -158,8 +176,8 @@ export function SpeechCheck({
           <>
             <span className={`grade grade-${result.grade}`}>{GRADE_LABEL[result.grade]}</span>
             <span className="heard">
-              Gehört: <span lang="ja">{result.heard}</span>
-              {/^[぀-ヿ\s]+$/.test(result.heard) && <span className="muted"> ({toRomaji(result.heard)})</span>}
+              Gehört: <span lang="ja">{result.heard.length > 40 ? `${result.heard.slice(0, 40)}…` : result.heard}</span>
+              {/^[぀-ヿ\s]+$/.test(result.heard) && result.heard.length <= 40 && <span className="muted"> ({toRomaji(result.heard)})</span>}
               <span className="muted"> · {Math.round(result.score * 100)} %</span>
             </span>
           </>
