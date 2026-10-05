@@ -2,12 +2,13 @@
 // Eigene Aufnahme mit dem Original vergleichen → Aussprache, Rhythmus und Melodie verbessern.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SpeakButton, SpeechCheck, say, useRecorder } from '../components/Audio';
+import { GlossText, useGloss } from '../components/GlossText';
 import { Icon } from '../components/Icon';
 import { Header, JpText, ProgressBar, Segmented, sample } from '../components/ui';
 import { sentencePool } from '../data';
 import type { Level } from '../data/types';
 import { wait } from '../lib/speech';
-import { addXP, countShadow, markDone, useAppState } from '../lib/store';
+import { addXP, countShadow, markDone, updateSettings, useAppState } from '../lib/store';
 
 const COUNT = 8;
 
@@ -26,6 +27,8 @@ export function Shadowing() {
   const loopRef = useRef(false);
   const rec = useRecorder();
   const s = sentences[i];
+  const gloss = useGloss(s);
+  const glossOn = state.settings.glossView && !!gloss;
 
   useEffect(() => {
     loopRef.current = false;
@@ -93,13 +96,28 @@ export function Shadowing() {
       <div className="card stack mt" key={`${session}-${i}`}>
         <div className="row between">
           <span className="chip">{s.source}</span>
-          <span className="muted small">
-            {i + 1}/{sentences.length}
+          <span className="row gap-s">
+            {gloss && showText && (
+              <button
+                type="button"
+                className={`chip gloss-toggle ${glossOn ? 'is-on' : ''}`}
+                onClick={() => updateSettings({ glossView: !state.settings.glossView })}
+                aria-pressed={glossOn}
+                title="Welches deutsche Wort gehört zu welchem japanischen?"
+              >
+                🎨 Satzbau
+              </button>
+            )}
+            <span className="muted small">
+              {i + 1}/{sentences.length}
+            </span>
           </span>
         </div>
         <div className="col center gap">
           <SpeakButton text={s.jp} size="xl" slowButton autoPlay />
-          {showText ? (
+          {showText && glossOn ? (
+            <GlossText s={s} entry={gloss} />
+          ) : showText ? (
             <JpText s={s} size="lg" center showDe />
           ) : (
             <button className="reveal center" onClick={() => setShowText(true)}>

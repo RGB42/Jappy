@@ -36,6 +36,7 @@ export interface Settings {
   audioSource: 'clips' | 'browser'; // eingebaute Aufnahmen oder Browser-Stimme
   whisper: 'off' | 'fast'; // Offline-Spracherkennung (KI-Modell im Browser)
   sttEngine: 'auto' | 'whisper'; // auto = Browser-Erkennung, falls vorhanden
+  glossView: boolean; // Satzbau farbig zeigen (Wort-für-Wort-Zuordnung Japanisch ↔ Deutsch)
 }
 
 export interface DoneEntry {
@@ -98,6 +99,7 @@ export const defaultSettings: Settings = {
   audioSource: 'clips',
   whisper: 'off',
   sttEngine: 'auto',
+  glossView: true,
 };
 
 const defaultRecords: Records = {

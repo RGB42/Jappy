@@ -638,7 +638,7 @@ export const dialogues: Dialogue[] = [
         role: 'A',
         jp: 'はい、朝食付きのプランでございます。朝食はあちらのレストランで、7時から10時までです。',
         kana: 'はい、 ちょうしょく つき の プラン で ございます。 ちょうしょく は あちら の レストラン で、 しちじ から じゅうじ まで です。',
-        de: 'Ja, Ihr Tarif ist mit Frühstück. Es gibt es im Restaurant dort drüben, von 7 bis 10 Uhr.',
+        de: 'Ja, Ihr Tarif ist mit Frühstück. Das gibt es im Restaurant dort drüben, von 7 bis 10 Uhr.',
       },
       {
         role: 'B',

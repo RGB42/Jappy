@@ -10,7 +10,7 @@ Läuft im Browser auf Handy und PC, offline-fähig, ohne Konto – der Fortschri
 | 🆕 Neue Ausdrücke | hören → verstehen → nachsprechen → abrufen | Audio zuerst, aktives Abrufen |
 | 🔁 Wiederholen | Hörkarten (hören → Bedeutung) und Sprechkarten (Deutsch → sprechen) | Verteilte Wiederholung (SM-2) |
 | 🎧 Audio-Lektion | freihändig: Frage, laut antworten, Lösung | Pimsleur (Antizipation, gestaffelte Intervalle, Rückwärtsaufbau) |
-| 🗣️ Shadowing | Endlosschleife, mitsprechen, eigene Aufnahme vergleichen | Shadowing, Imitation |
+| 🗣️ Shadowing | Endlosschleife, mitsprechen, eigene Aufnahme vergleichen, farbiger Satzbau (welches deutsche Wort gehört zu welchem japanischen) | Shadowing, Imitation, Input Enhancement |
 | 🎭 Rollenspiele | 16 Alltagssituationen: App spielt eine Rolle, du die andere | Aufgabenbasiertes Lernen |
 | 📻 Hörgeschichten | 12 Geschichten: ohne Text hören, Fragen, dann mit Text | Verstehbarer Input (i+1) |
 | 👂 Hörtraining & Minimalpaare | Wörter/Sätze verstehen, おばさん vs. おばあさん unterscheiden | Ohrtraining |
