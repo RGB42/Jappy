@@ -14,6 +14,8 @@ export interface CorpusEntry {
   text: string;
   kana?: string;
   voice: AudioVoice;
+  /** Text für die Sprachsynthese, falls abweichend (Einzelwörter: Kanji statt Kana → richtige Betonung). */
+  synth?: string;
 }
 
 /** Feste Sätze aus der Oberfläche (Onboarding, Einstellungen, Maskottchen, Audio-Lektion). */
@@ -32,15 +34,16 @@ export const UI_PHRASES: { text: string; kana?: string }[] = [
 
 export function buildCorpus(): CorpusEntry[] {
   const map = new Map<string, CorpusEntry>();
-  const add = (text: string, kana?: string, voice: AudioVoice = 'f') => {
+  const add = (text: string, kana?: string, voice: AudioVoice = 'f', synth?: string) => {
     const t = text.trim();
     if (!t) return;
     const key = audioKey(t, voice);
-    if (!map.has(key)) map.set(key, { key, text: t, kana, voice });
+    if (!map.has(key)) map.set(key, { key, text: t, kana, voice, ...(synth && synth !== t ? { synth } : {}) });
   };
 
   for (const item of allItems) {
-    add(sayText(item), item.kana);
+    // Wörter werden über ihre Kana abgespielt, aber aus der Kanji-Form synthetisiert (Wortbetonung).
+    add(sayText(item), item.kana, 'f', item.kind === 'word' ? item.jp : undefined);
     if (item.example) add(item.example.jp, item.example.kana);
     // Audio-Lektion: Rückwärtsaufbau langer Ausdrücke
     for (const cue of buildLessonScript([{ id: item.id, jp: sayText(item), kana: item.kana, de: item.de, isNew: true }])) {

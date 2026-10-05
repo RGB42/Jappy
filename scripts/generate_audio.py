@@ -85,6 +85,10 @@ def plain(s: str) -> str:
     return PUNCT_RE.sub('', s)
 
 
+# Sätze, bei denen die Engine は falsch zuordnet und die Kana-Lesung erzwungen werden muss
+# („袋はいりますか“ = „fukuro wa irimasu ka“, nicht „hairimasu“).
+FORCE_KANA = {'袋はいりますか。'}
+
 _SMALL = set('ャュョァィゥェォヮ')
 _PARTICLE_PRON = {'は': 'ワ', 'へ': 'エ', 'を': 'オ'}
 _RELAXED = [{'ハ', 'ワ'}, {'ヘ', 'エ'}, {'ヲ', 'オ'}]
@@ -171,7 +175,8 @@ def build_query(synth: Synthesizer, entry: dict, style: int, log: list):
             return synth.create_audio_query_from_kana(f"{k}'", style)
         except Exception:  # noqa: BLE001
             pass
-    query = synth.create_audio_query(text, style)
+    # Einzelwörter: aus der Kanji-Form synthetisieren (das Wort ist bekannt → natürliche Betonung)
+    query = synth.create_audio_query(entry.get('synth') or text, style)
     if not kana:
         return query
     engine_raw = split_moras(moras(query))
@@ -179,8 +184,10 @@ def build_query(synth: Synthesizer, entry: dict, style: int, log: list):
     # Vergleich mit vereinheitlichter Vokaldehnung (Silbenzahl bleibt dabei gleich)
     engine = split_moras(norm_pron(''.join(engine_raw)))
     ours = split_moras(norm_pron(''.join(ours_raw)))
-    if len(engine) == len(ours) and all(relaxed_eq(a, b) for a, b in zip(engine, ours)):
+    if text not in FORCE_KANA and len(engine) == len(ours) and all(relaxed_eq(a, b) for a, b in zip(engine, ours)):
         return query  # Engine liest richtig (Partikel-は usw. kennt sie aus dem Kontext)
+    if text in FORCE_KANA:
+        engine_raw = ours_raw  # Kana-Lesung vollständig übernehmen
     # Abweichung: Aussprache aus den Kana erzwingen. Wo beide übereinstimmen, die (natürlichere) Engine-Silbe nehmen.
     if len(engine) == len(ours):
         final = [er if relaxed_eq(e, o) else orw for er, e, o, orw in zip(engine_raw, engine, ours, ours_raw)]
@@ -224,11 +231,16 @@ def main():
     synth = make_synth()
     log: list = []
     force = '--force' in sys.argv
+    # --only=<datei>: nur diese Schlüssel neu erzeugen (eine Zeile pro Schlüssel)
+    only = set()
+    for arg in sys.argv:
+        if arg.startswith('--only='):
+            only = set(Path(arg[7:]).read_text().split())
     keys = []
     for i, entry in enumerate(corpus):
         base = OUT / entry['key']
         keys.append(entry['key'])
-        if base.with_suffix('.mp3').exists() and base.with_suffix('.ogg').exists() and not force:
+        if base.with_suffix('.mp3').exists() and base.with_suffix('.ogg').exists() and not force and entry['key'] not in only:
             continue
         style = VOICES[entry['voice']]['style']
         query = build_query(synth, entry, style, log)
