@@ -4,3 +4,6 @@ dist
 .DS_Store
 scripts/speech-corpus.json
 __pycache__/
+
+# Lokale Umgebungsvariablen (z. B. Supabase-Zugang)
+*.local

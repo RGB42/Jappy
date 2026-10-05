@@ -20,6 +20,7 @@ Läuft im Browser auf Handy und PC, offline-fähig, ohne Konto – der Fortschri
 | 🎯 Persönliches Ziel | Zieltyp, Datum, Fähigkeiten, „Mein Warum“ → Plan, Prognose, Reise-Checkliste | Zielsetzungstheorie |
 | 🎮 Spielerisch | Level & Ränge, 3 Tagesquests + Tageskiste, Yen-Reisekasse & Laden, 27 Abzeichen, Stempelheft, Streak-Schutz, Hör-Blitz, Combos | Gewohnheitsschleife, Selbstbestimmungstheorie |
 | 📅 Erinnerung | täglicher Kalendertermin (.ics) zur Wunsch-Uhrzeit | Wenn-dann-Pläne |
+| ☁️ Konto & Sync | Anmelden, auf Handy und PC mit demselben Stand weiterlernen | Lernen überall |
 
 ### Audio & Spracherkennung – in jedem Browser (auch Firefox)
 
@@ -62,11 +63,35 @@ npm run build    # Produktions-Build nach dist/
 **GitHub Pages:** Der Workflow `.github/workflows/deploy.yml` testet, baut und veröffentlicht bei jedem Push auf `main`.
 Einmalig aktivieren: *Settings → Pages → Source: GitHub Actions*.
 
+## Synchronisierung (Handy ↔ PC)
+
+Mit einem Konto wird der Fortschritt online gespeichert und automatisch zwischen Geräten abgeglichen: nach jeder Übung,
+beim Öffnen der App und beim Zurückkehren. Wurde auf zwei Geräten offline geübt, werden die Stände zusammengeführt:
+XP, Yen und Zähler werden addiert, bei Karteikarten zählt die neuere Wiederholung, und Abzeichen und Käufe bleiben erhalten.
+Ohne Konto funktioniert alles wie bisher, nur lokal.
+
+Als Online-Speicher dient [Supabase](https://supabase.com). Der kostenlose Tarif reicht, die Daten liegen in der EU.
+Einmalig einrichten:
+
+1. Bei Supabase ein Projekt anlegen, Region **Frankfurt (eu-central-1)**.
+2. *SQL Editor* öffnen, den Inhalt von [`supabase/schema.sql`](supabase/schema.sql) einfügen und ausführen. Das legt die
+   Tabelle `progress` an, nur für den eigenen Nutzer lesbar (Row Level Security), plus die Funktion zum Löschen des Kontos.
+3. *Authentication → URL Configuration*:
+   - **Site URL** auf `https://rgb42.github.io/Jappy/` setzen.
+   - Dieselbe Adresse unter **Redirect URLs** eintragen.
+   - E-Mail-Bestätigung kann an bleiben; der Link meldet direkt in der App an.
+4. *Project Settings → API*: **Project URL** und **anon public key** kopieren.
+5. Auf GitHub unter *Settings → Secrets and variables → Actions → Variables* zwei Repository-Variablen anlegen:
+   `SUPABASE_URL` und `SUPABASE_ANON_KEY`. Danach den Deploy-Workflow neu starten.
+
+Der anon key ist öffentlich gedacht, geschützt wird über Row Level Security. Lokal geht es über eine `.env.local` mit
+`VITE_SUPABASE_URL=…` und `VITE_SUPABASE_ANON_KEY=…`.
+
 ## Tipps
 
 - Japanische Stimme fehlt? In den Systemeinstellungen eine japanische Sprachausgabe installieren (Windows: *Zeit & Sprache → Sprache*; iOS: *Bedienungshilfen → Gesprochene Inhalte → Stimmen*). Chrome bringt „Google 日本語“ mit.
 - Einstellungen: Sprechtempo, Stimme, Kana/Kanji-Anzeige, Romaji an/aus, „Erst hören, dann lesen“.
-- Fortschritt lässt sich in den Einstellungen exportieren/importieren.
+- Fortschritt lässt sich in den Einstellungen exportieren/importieren, oder per Konto automatisch synchronisieren.
 
 ## Aufbau
 

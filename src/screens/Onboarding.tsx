@@ -5,11 +5,18 @@ import type { Level } from '../data/types';
 import { WhisperSetup } from '../components/WhisperSetup';
 import { nativeSttSupported } from '../lib/speech';
 import { GoalEditor } from '../components/GoalEditor';
+import { AccountCard } from '../components/Account';
+import { cloudConfigured } from '../lib/cloud';
 import { completeOnboarding } from '../lib/store';
+import { useSyncStatus } from '../lib/sync';
 
 export function Onboarding() {
   const [step, setStep] = useState(0);
   const [level, setLevel] = useState<Level>(1);
+  const [haveAccount, setHaveAccount] = useState(false);
+  const sync = useSyncStatus();
+  // Über einen E-Mail-Link angemeldet (Bestätigung/Passwort) → Konto direkt zeigen.
+  const showAccount = haveAccount || !!sync.user || !!sync.needsNewPassword || !!sync.error;
 
   return (
     <div className="stack" style={{ paddingTop: 32 }}>
@@ -31,6 +38,16 @@ export function Onboarding() {
           <button className="btn btn-primary btn-large btn-block" onClick={() => setStep(1)}>
             Los geht's
           </button>
+          {cloudConfigured() &&
+            (showAccount ? (
+              <div style={{ width: '100%' }}>
+                <AccountCard compact />
+              </div>
+            ) : (
+              <button className="btn btn-ghost btn-block" onClick={() => setHaveAccount(true)}>
+                ☁️ Ich habe schon ein Konto
+              </button>
+            ))}
         </div>
       )}
 

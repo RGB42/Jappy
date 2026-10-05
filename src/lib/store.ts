@@ -150,7 +150,8 @@ function load(): AppState {
   }
 }
 
-function migrate(data: Partial<AppState>): AppState {
+/** Gespeicherten oder hochgeladenen Spielstand auf das aktuelle Format bringen. */
+export function migrate(data: Partial<AppState>): AppState {
   const base = initialState();
   const merged: AppState = {
     ...base,
@@ -198,9 +199,16 @@ export function setState(updater: (s: AppState) => AppState) {
   celebrate(events);
 }
 
-function subscribe(fn: () => void) {
+export function subscribe(fn: () => void) {
   listeners.add(fn);
   return () => listeners.delete(fn);
+}
+
+/** Zustand von außen übernehmen (Synchronisierung) – ohne Belohnungen erneut auszulösen. */
+export function replaceState(next: AppState) {
+  state = next;
+  persist();
+  listeners.forEach((l) => l());
 }
 
 export function useAppState(): AppState {

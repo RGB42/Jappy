@@ -1,6 +1,8 @@
 // Einstellungen: Stimme, Tempo, Anzeige, Niveau, Datensicherung.
 import { useEffect, useState } from 'react';
 import { say } from '../components/Audio';
+import { AccountCard } from '../components/Account';
+import { cloudConfigured } from '../lib/cloud';
 import { WhisperSetup } from '../components/WhisperSetup';
 import { Header, ProgressBar, Segmented } from '../components/ui';
 import { LEVELS } from '../data';
@@ -32,6 +34,9 @@ export function Settings() {
   return (
     <>
       <Header title="Einstellungen" />
+
+      <div className="section-title">Konto & Geräte</div>
+      <AccountCard />
 
       <div className="section-title">Stimme & Audio</div>
       <div className="card">
@@ -184,7 +189,7 @@ export function Settings() {
 
       <div className="section-title">Daten</div>
       <div className="card stack">
-        <p className="muted small">Dein Fortschritt wird nur lokal in diesem Browser gespeichert. Sichere ihn, um das Gerät zu wechseln.</p>
+        <p className="muted small">Dein Fortschritt liegt in diesem Browser{cloudConfigured() ? ' – mit Konto zusätzlich online' : ''}. Hier kannst du ihn zusätzlich als Datei sichern.</p>
         <button className="btn btn-block" onClick={download}>
           ⬇️ Fortschritt exportieren
         </button>
