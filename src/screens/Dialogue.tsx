@@ -10,6 +10,11 @@ import { wait } from '../lib/speech';
 import { navigate, useRoute } from '../lib/router';
 import { addXP, markDone, useAppState, useSettings } from '../lib/store';
 
+/** Gesprächspartner sprechen mit zweiter (männlicher) Stimme, die eigene Rolle mit der Hauptstimme. */
+function voiceFor(role: 'A' | 'B', userRole: 'A' | 'B'): 'f' | 'm' {
+  return role === userRole ? 'f' : 'm';
+}
+
 export function DialogueList() {
   const state = useAppState();
   return (
@@ -109,7 +114,7 @@ function ListenMode({ d, userRole, onDone }: { d: Dialogue; userRole: 'A' | 'B';
     playing.current = true;
     for (let i = 0; i < d.lines.length && playing.current; i++) {
       setActive(i);
-      await say(d.lines[i].jp);
+      await say(d.lines[i].jp, { voice: voiceFor(d.lines[i].role, userRole) });
       await wait(450);
     }
     playing.current = false;
@@ -137,7 +142,7 @@ function ListenMode({ d, userRole, onDone }: { d: Dialogue; userRole: 'A' | 'B';
             <div
               key={i}
               className={`bubble ${l.role === userRole ? 'me' : ''} ${active === i ? 'active' : ''}`}
-              onClick={() => say(l.jp)}
+              onClick={() => say(l.jp, { voice: voiceFor(l.role, userRole) })}
               role="button"
               tabIndex={0}
             >
@@ -189,7 +194,7 @@ function PlayMode({
     (async () => {
       await wait(350);
       if (cancelled) return;
-      await say(line.jp);
+      await say(line.jp, { voice: 'm' });
       await wait(400);
       if (!cancelled && alive.current) setPos((p) => p + 1);
     })();
@@ -236,7 +241,7 @@ function PlayMode({
     <div className="stack">
       <div className="bubbles">
         {d.lines.slice(0, pos).map((l, i) => (
-          <div key={i} className={`bubble ${l.role === userRole ? 'me' : ''}`} onClick={() => say(l.jp)} role="button" tabIndex={0}>
+          <div key={i} className={`bubble ${l.role === userRole ? 'me' : ''}`} onClick={() => say(l.jp, { voice: voiceFor(l.role, userRole) })} role="button" tabIndex={0}>
             <div className="bubble-role">{d.roles.find((r) => r.id === l.role)!.nameDe}</div>
             {l.role === userRole || !settings.audioFirst ? <JpText s={l} size="sm" /> : <div className="de">{l.de}</div>}
           </div>

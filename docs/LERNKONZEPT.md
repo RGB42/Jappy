@@ -40,13 +40,21 @@ Max. 6 neue Ausdrücke pro Einheit (kognitive Belastung gering halten). Erst rez
 | Grundstufe | ≈ JLPT N4 | て-Form, Erlaubnis, Vergleiche, Erfahrungen, einfache Form |
 | Fortgeschritten | ≈ JLPT N3+ | Keigo, Konditionale, Passiv/Kausativ, Umgangssprache |
 
-## 4. Feedback beim Sprechen
+## 4. Hören & Sprechen in jedem Browser
+
+- **Aufnahmen statt Systemstimme:** Alle japanischen Texte sind als natürliche Aufnahmen eingebaut (VOICEVOX).
+  Zwei Stimmen machen Dialoge lebendiger. Kanji-Lesungen werden beim Erzeugen gegen die geprüften Kana abgeglichen,
+  damit Gehörtes und Gelesenes übereinstimmen.
+- **Spracherkennung überall:** Chrome/Safari nutzen ihre eingebaute Erkennung; in Firefox läuft eine japanische
+  Spracherkennungs-KI (Moonshine) lokal im Browser – ohne Server, die Stimme bleibt auf dem Gerät.
+
+## 5. Feedback beim Sprechen
 
 Die Spracherkennung liefert mehrere Varianten (Kanji/Kana). Jappy vergleicht alle mit der Kanji-Schreibweise, der
 Kana-Lesung und akzeptierten Alternativen (normalisiert, Levenshtein-Ähnlichkeit):
 ≥ 85 % „Perfekt“, ≥ 60 % „Gut“, darunter „Nochmal“. Bei Sprechkarten schlägt das Ergebnis eine Bewertung vor.
 
-## 5. Motivation: Ziel + Spiel
+## 6. Motivation: Ziel + Spiel
 
 Wer täglich übt, lernt schneller als wer selten viel übt. Deshalb verknüpft Jappy ein **persönliches Ziel** mit
 **spielerischen Belohnungen**.

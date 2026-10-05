@@ -9,9 +9,12 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "audio:collect": "tsx scripts/collect-speech.ts",
+    "audio": "npm run audio:collect && python3 scripts/generate_audio.py"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
@@ -19,6 +22,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "vite": "^8.3.2",
     "vitest": "^5.0.3"

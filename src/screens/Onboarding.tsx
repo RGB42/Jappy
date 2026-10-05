@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { SpeakButton, SpeechCheck } from '../components/Audio';
 import { LEVELS } from '../data';
 import type { Level } from '../data/types';
-import { sttSupported, ttsSupported } from '../lib/speech';
+import { WhisperSetup } from '../components/WhisperSetup';
+import { nativeSttSupported } from '../lib/speech';
 import { GoalEditor } from '../components/GoalEditor';
 import { completeOnboarding } from '../lib/store';
 
@@ -27,9 +28,6 @@ export function Onboarding() {
             <SpeakButton text="こんにちは。ようこそ！" size="xl" />
             <div className="muted small">„Konnichiwa. Yōkoso!“ – Hallo. Willkommen!</div>
           </div>
-          {!ttsSupported() && (
-            <div className="notice">Dein Browser unterstützt keine Sprachausgabe. Bitte nutze Chrome, Edge oder Safari.</div>
-          )}
           <button className="btn btn-primary btn-large btn-block" onClick={() => setStep(1)}>
             Los geht's
           </button>
@@ -76,10 +74,10 @@ export function Onboarding() {
             </div>
             <SpeechCheck targets={['ありがとう', '有難う']} />
           </div>
-          {!sttSupported() && (
-            <div className="notice">
-              Spracherkennung ist hier nicht verfügbar. Du kannst trotzdem laut sprechen, dich aufnehmen und vergleichen. Für
-              automatisches Feedback: Chrome (Android/Desktop) oder Safari (iOS).
+          {!nativeSttSupported() && (
+            <div className="card stack">
+              <b>🧠 Spracherkennung für diesen Browser</b>
+              <WhisperSetup />
             </div>
           )}
           <button className="btn btn-primary btn-large btn-block" onClick={() => setStep(3)}>

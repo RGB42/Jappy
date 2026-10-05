@@ -1,6 +1,10 @@
 // Sprachausgabe (Text-to-Speech) und Spracherkennung (Speech-to-Text) über die Web Speech API.
 // Funktioniert ohne Server: Chrome/Edge (Desktop & Android) und Safari (iOS/macOS).
 
+import { stopClip } from './audioBank';
+import { getState } from './store';
+import { recordSpeech, transcribe, type RecordControl } from './whisper';
+
 export type SpeechLang = 'ja-JP' | 'de-DE';
 
 export interface SpeakOptions {
@@ -52,6 +56,8 @@ function pickVoice(lang: SpeechLang, voiceURI?: string): SpeechSynthesisVoice | 
 }
 
 let currentToken = 0;
+// Firefox verwirft Äußerungen ohne Referenz manchmal vor dem Sprechen (Garbage Collection).
+export let currentUtterance: SpeechSynthesisUtterance | null = null;
 
 /** Liest Text vor. Das Promise löst auf, wenn die Ausgabe fertig ist (oder abgebrochen wurde). */
 export function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
@@ -62,6 +68,7 @@ export function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
   if (busy) synth.cancel();
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
+    currentUtterance = u;
     const lang = opts.lang ?? 'ja-JP';
     u.lang = lang;
     u.rate = opts.rate ?? 1;
@@ -94,6 +101,7 @@ export function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
 
 export function stopSpeaking() {
   currentToken++;
+  stopClip();
   if (ttsSupported()) window.speechSynthesis.cancel();
 }
 
@@ -130,8 +138,19 @@ function recognitionCtor(): (new () => RecognitionLike) | undefined {
   return (w.SpeechRecognition ?? w.webkitSpeechRecognition) as (new () => RecognitionLike) | undefined;
 }
 
-export function sttSupported(): boolean {
+export function nativeSttSupported(): boolean {
   return !!recognitionCtor();
+}
+
+/** Welche Spracherkennung genutzt wird: Browser (Chrome/Safari), Offline-KI im Browser (z. B. Firefox) oder keine. */
+export function sttMode(): 'native' | 'whisper' | 'none' {
+  const { whisper, sttEngine } = getState().settings;
+  if (whisper !== 'off' && (sttEngine === 'whisper' || !nativeSttSupported())) return 'whisper';
+  return nativeSttSupported() ? 'native' : 'none';
+}
+
+export function sttSupported(): boolean {
+  return sttMode() !== 'none';
 }
 
 export interface ListenResult {
@@ -149,6 +168,7 @@ export interface ListenHandle {
  * Japanisch mal in Kanji, mal in Kana – der Vergleich prüft alle).
  */
 export function listen(lang: SpeechLang = 'ja-JP', onInterim?: (text: string) => void): ListenHandle {
+  if (sttMode() === 'whisper') return listenWhisper(onInterim);
   const Ctor = recognitionCtor();
   if (!Ctor) {
     return { result: Promise.resolve({ alternatives: [], error: 'not-supported' }), stop: () => {} };
@@ -217,6 +237,27 @@ export function listen(lang: SpeechLang = 'ja-JP', onInterim?: (text: string) =>
   };
 }
 
+/** Offline-Spracherkennung: aufnehmen bis zur Sprechpause, dann im Browser auswerten. */
+function listenWhisper(onInterim?: (text: string) => void): ListenHandle {
+  stopSpeaking();
+  const control: RecordControl = {};
+  const model = 'fast' as const;
+  const result = (async (): Promise<ListenResult> => {
+    try {
+      onInterim?.('Ich höre zu … (stoppt nach einer kurzen Pause)');
+      const audio = await recordSpeech(control);
+      if (!audio.length) return { alternatives: [], error: 'no-speech' };
+      onInterim?.('Werte aus …');
+      const text = await transcribe(audio, model);
+      return text ? { alternatives: [text] } : { alternatives: [], error: 'no-speech' };
+    } catch (e) {
+      const name = e instanceof Error ? e.name : '';
+      return { alternatives: [], error: name === 'NotAllowedError' ? 'not-allowed' : name === 'NotFoundError' ? 'audio-capture' : 'whisper-failed' };
+    }
+  })();
+  return { result, stop: () => control.stop?.() };
+}
+
 export function describeSpeechError(error?: string): string {
   switch (error) {
     case 'not-allowed':
@@ -228,6 +269,8 @@ export function describeSpeechError(error?: string): string {
       return 'Kein Mikrofon gefunden.';
     case 'network':
       return 'Die Spracherkennung braucht eine Internetverbindung.';
+    case 'whisper-failed':
+      return 'Die Offline-Spracherkennung konnte nicht laden. Prüfe die Internetverbindung (nur beim ersten Mal nötig).';
     case 'not-supported':
       return 'Spracherkennung wird von diesem Browser nicht unterstützt (am besten Chrome oder Safari).';
     default:

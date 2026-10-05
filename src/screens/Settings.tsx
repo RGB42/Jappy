@@ -1,10 +1,12 @@
 // Einstellungen: Stimme, Tempo, Anzeige, Niveau, Datensicherung.
 import { useEffect, useState } from 'react';
 import { say } from '../components/Audio';
-import { Header, Segmented } from '../components/ui';
+import { WhisperSetup } from '../components/WhisperSetup';
+import { Header, ProgressBar, Segmented } from '../components/ui';
 import { LEVELS } from '../data';
 import type { Level } from '../data/types';
-import { getVoices, onVoicesChanged, sttSupported, ttsSupported } from '../lib/speech';
+import { audioCredits, cacheAllAudio, cachedAudioCount, loadAudioIndex, audioCount } from '../lib/audioBank';
+import { getVoices, onVoicesChanged, sttMode, ttsSupported } from '../lib/speech';
 import { downloadReminder } from '../lib/reminder';
 import { navigate } from '../lib/router';
 import { exportProgress, importProgress, resetAll, setLevel, updateSettings, useAppState } from '../lib/store';
@@ -35,7 +37,23 @@ export function Settings() {
       <div className="card">
         <div className="field">
           <span className="field-label">Japanische Stimme</span>
-          {voices.length ? (
+          <Segmented
+            value={s.audioSource}
+            onChange={(v) => updateSettings({ audioSource: v })}
+            options={[
+              { value: 'clips', label: 'Natürliche Aufnahmen' },
+              { value: 'browser', label: 'Browser-Stimme' },
+            ]}
+          />
+          {s.audioSource === 'clips' ? (
+            <>
+              <div className="muted small">
+                Eingebaute Aufnahmen – klingen in jedem Browser gleich (auch Firefox) und funktionieren offline.
+                {audioCredits().length > 0 && ` Stimmen: ${audioCredits().join(', ')}.`}
+              </div>
+              <OfflineAudio />
+            </>
+          ) : voices.length ? (
             <select value={s.voiceURI ?? ''} onChange={(e) => updateSettings({ voiceURI: e.target.value || undefined })}>
               <option value="">Automatisch (beste verfügbare)</option>
               {voices.map((v) => (
@@ -47,8 +65,8 @@ export function Settings() {
           ) : (
             <div className="notice">
               {ttsSupported()
-                ? 'Keine japanische Stimme gefunden. Installiere eine in den Sprach-Einstellungen deines Geräts (z. B. Windows: Einstellungen → Zeit & Sprache → Sprache → Japanisch; iOS: Bedienungshilfen → Gesprochene Inhalte → Stimmen).'
-                : 'Dieser Browser unterstützt keine Sprachausgabe.'}
+                ? 'Keine japanische Systemstimme gefunden – nutze „Natürliche Aufnahmen“ oder installiere eine Stimme (Windows: Einstellungen → Zeit & Sprache → Sprache → Japanisch).'
+                : 'Dieser Browser unterstützt keine Sprachausgabe – nutze „Natürliche Aufnahmen“.'}
             </div>
           )}
         </div>
@@ -75,8 +93,11 @@ export function Settings() {
           </span>
           <input type="checkbox" checked={s.sound} onChange={(e) => updateSettings({ sound: e.target.checked })} />
         </label>
-        <div className="field small muted">
-          Spracherkennung: {sttSupported() ? '✅ verfügbar' : '❌ nicht verfügbar (Chrome/Edge oder Safari nutzen)'}
+        <div className="field">
+          <span className="field-label">
+            Spracherkennung: {sttMode() === 'native' ? '✅ Browser' : sttMode() === 'whisper' ? '✅ Offline-KI' : '❌ noch nicht aktiv'}
+          </span>
+          <WhisperSetup />
         </div>
       </div>
 
@@ -190,5 +211,54 @@ export function Settings() {
       </div>
       <p className="muted small center mt">Jappy · Japanisch lernen durch Hören, Sprechen und Ausprobieren</p>
     </>
+  );
+}
+
+/** Alle Aufnahmen für unterwegs speichern (z. B. vor dem Flug nach Japan). */
+function OfflineAudio() {
+  const [cached, setCached] = useState<number | null>(null);
+  const [total, setTotal] = useState(0);
+  const [busy, setBusy] = useState<{ done: number; total: number } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void loadAudioIndex().then(async () => {
+      const n = await cachedAudioCount().catch(() => 0);
+      if (alive) {
+        setTotal(audioCount());
+        setCached(n);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (typeof caches === 'undefined' || !total) return null;
+  if (busy) {
+    return (
+      <div className="stack">
+        <ProgressBar value={busy.done} max={busy.total} />
+        <span className="muted small">
+          {busy.done} / {busy.total} Aufnahmen gespeichert …
+        </span>
+      </div>
+    );
+  }
+  const complete = (cached ?? 0) >= total;
+  return complete ? (
+    <div className="muted small">✓ Alle {total} Aufnahmen sind offline verfügbar.</div>
+  ) : (
+    <button
+      className="btn btn-small"
+      onClick={async () => {
+        setBusy({ done: 0, total });
+        await cacheAllAudio((done, t) => setBusy({ done, total: t }));
+        setBusy(null);
+        setCached(await cachedAudioCount());
+      }}
+    >
+      ⬇️ Alle {total} Aufnahmen offline speichern (≈ 10–20 MB)
+    </button>
   );
 }
