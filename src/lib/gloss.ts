@@ -21,7 +21,6 @@ const PARTICLES = new Set(['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も
 export const isParticle = (p: GlossPart) => PARTICLES.has(p[1].trim());
 
 const PUNCT = /[\s　。、？！?!「」『』…,.]/;
-const PUNCT_ALL = new RegExp(PUNCT.source, 'g');
 
 export const partRomaji = (p: GlossPart) => p[4] ?? toRomaji(p[1]);
 
@@ -86,11 +85,8 @@ export function layoutGloss(jp: string, parts: GlossPart[]): LayoutItem[] | null
   return pos === jp.length ? out : null;
 }
 
-const tokens = (kana: string) =>
-  kana
-    .split(/\s+/)
-    .map((t) => t.replace(PUNCT_ALL, ''))
-    .filter(Boolean);
+// Satzzeichen trennen Wörter wie Leerzeichen („はい、そう です“ → はい | そう | です).
+const tokens = (kana: string) => kana.split(new RegExp(`(?:${PUNCT.source})+`)).filter(Boolean);
 
 const ROLES = new Set<string>(ROLE_ORDER);
 

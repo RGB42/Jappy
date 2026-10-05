@@ -1816,6 +1816,10 @@ input[type='text'] {
   align-items: flex-start;
   gap: 6px 3px;
 }
+.gloss-unit {
+  display: inline-flex;
+  align-items: flex-start;
+}
 .gloss-chunk {
   display: inline-grid;
   justify-items: center;
@@ -1883,20 +1887,24 @@ input[type='text'] {
   font-style: italic;
 }
 .gloss-punct {
-  align-self: flex-start;
   font-family: var(--font-jp);
   font-size: 1.4rem;
-  padding-top: 0.9rem;
+  line-height: 1.25;
+  padding-top: calc(3px + var(--furi-h, 0px));
   color: var(--muted);
+}
+.gloss.has-furi {
+  --furi-h: 0.8rem;
 }
 .gloss-de {
   font-size: 1.05rem;
-  line-height: 2;
+  line-height: 2.1;
   text-align: center;
 }
 .gloss-seg {
   display: inline;
-  padding: 2px 3px;
+  line-height: 1.35;
+  padding: 1px 3px;
   border: 0;
   border-bottom: 2px solid var(--rc);
   border-radius: 4px;

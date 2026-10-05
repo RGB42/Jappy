@@ -18,7 +18,7 @@ function loadGlosses(): Promise<Finder> {
 export function useGloss(s: Sentence | undefined): GlossEntry | null {
   const [find, setFind] = useState<Finder | null>(finder);
   useEffect(() => {
-    if (!find) void loadGlosses().then(setFind, () => {});
+    if (!find) void loadGlosses().then((f) => setFind(() => f), () => {});
   }, [find]);
   return s && find ? find(s) : null;
 }
@@ -33,6 +33,15 @@ export function GlossText({ s, entry }: { s: Sentence; entry: GlossEntry }) {
   const parts = entry[1];
   const layout = layoutGloss(s.jp, parts);
   if (!layout) return null;
+  const units: { part: number; lead: string; trail: string }[] = [];
+  let lead = '';
+  for (const item of layout) {
+    if ('part' in item) {
+      units.push({ part: item.part, lead, trail: '' });
+      lead = '';
+    } else if (units.length) units[units.length - 1].trail += item.punct;
+    else lead += item.punct;
+  }
   const de = parseGlossDe(entry[2], parts);
   const furigana = settings.script === 'both' && parts.some((p) => hasKanji(p[0]));
   const roles = ROLE_ORDER.filter((r) => parts.some((p) => p[3] === r));
@@ -42,35 +51,31 @@ export function GlossText({ s, entry }: { s: Sentence; entry: GlossEntry }) {
   const roleClass = (r: GlossRole) => `role-${r}`;
 
   return (
-    <div className="gloss">
+    <div className={`gloss ${furigana ? 'has-furi' : ''}`}>
       <div className="gloss-jp" lang="ja">
-        {layout.map((item, k) => {
-          if ('punct' in item) {
-            return (
-              <span key={k} className="gloss-punct">
-                {item.punct}
-              </span>
-            );
-          }
-          const i = item.part;
+        {units.map(({ part: i, lead, trail }) => {
           const p = parts[i];
           const kana = p[1].replace(/ /g, '');
           return (
-            <button
-              key={k}
-              type="button"
-              className={`gloss-chunk ${roleClass(p[3])} ${isParticle(p) ? 'is-particle' : ''} ${active === i ? 'is-active' : ''} ${linked(i) ? '' : 'is-dim'}`}
-              onClick={() => toggle(i)}
-              aria-pressed={active === i}
-              title={`${p[0]} – ${p[2]} (${ROLE_LABEL[p[3]]})`}
-            >
-              {furigana && <span className="gloss-furi">{hasKanji(p[0]) ? kana : ' '}</span>}
-              <span className="gloss-word">{settings.script === 'kana' ? kana : p[0]}</span>
-              {settings.romaji && <span className="gloss-romaji">{partRomaji(p)}</span>}
-              <span className="gloss-mean" lang="de">
-                {p[2]}
-              </span>
-            </button>
+            // Satzzeichen hängen am Wort, damit sie nie allein in eine neue Zeile rutschen.
+            <span key={i} className="gloss-unit">
+              {lead && <span className="gloss-punct">{lead}</span>}
+              <button
+                type="button"
+                className={`gloss-chunk ${roleClass(p[3])} ${isParticle(p) ? 'is-particle' : ''} ${active === i ? 'is-active' : ''} ${linked(i) ? '' : 'is-dim'}`}
+                onClick={() => toggle(i)}
+                aria-pressed={active === i}
+                title={`${p[0]} – ${p[2]} (${ROLE_LABEL[p[3]]})`}
+              >
+                {furigana && <span className="gloss-furi">{hasKanji(p[0]) ? kana : '\u00a0'}</span>}
+                <span className="gloss-word">{settings.script === 'kana' ? kana : p[0]}</span>
+                {settings.romaji && <span className="gloss-romaji">{partRomaji(p)}</span>}
+                <span className="gloss-mean" lang="de">
+                  {p[2]}
+                </span>
+              </button>
+              {trail && <span className="gloss-punct">{trail}</span>}
+            </span>
           );
         })}
       </div>
