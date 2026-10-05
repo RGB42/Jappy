@@ -105,7 +105,8 @@ export function validateGloss(entry: GlossEntry, s: Sentence): string[] {
     if (!ROLES.has(p[3])) errs.push(`Teil ${i + 1} (${p[0]}): unbekannte Rolle ${p[3]}`);
     if (!p[2]?.trim()) errs.push(`Teil ${i + 1} (${p[0]}): Bedeutung fehlt`);
     else if (p[2].length > 32) errs.push(`Teil ${i + 1} (${p[0]}): Bedeutung zu lang (max. 32 Zeichen)`);
-    if (PUNCT.test(p[0].replace(/[,…]/g, '')) && !/^[\d,]+/.test(p[0])) errs.push(`Teil ${i + 1} (${p[0]}): Satzzeichen gehören nicht in Teile`);
+    // Satzzeichen nur innerhalb eines Teils (z. B. 二、三日), nicht an seinem Rand.
+    if (PUNCT.test(p[0][0] ?? '') || PUNCT.test(p[0].at(-1) ?? '')) errs.push(`Teil ${i + 1} (${p[0]}): Satzzeichen am Rand gehören nicht in Teile`);
   });
   if (stripGlossDe(de) !== s.de) errs.push(`Übersetzung ohne Markierung ≠ de: „${stripGlossDe(de)}“ ≠ „${s.de}“`);
   if (/[{}]/.test(stripGlossDe(de))) errs.push(`kaputte Markierung in „${de}“`);
