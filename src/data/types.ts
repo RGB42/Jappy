@@ -128,3 +128,24 @@ export interface MinimalPair {
   a: Sentence;
   b: Sentence;
 }
+
+/**
+ * Satzglied-Rolle – bestimmt die Farbe in der Satzanalyse (Japanisch ↔ Deutsch gleich gefärbt).
+ * S = Subjekt/Thema, O = Objekt, V = Prädikat (Verb, Adjektiv-Aussage, です …), Q = Fragewort,
+ * T = Zeit, L = Ort/Richtung/Ziel, M = Ergänzung (wie? womit? mit wem? wie viel?), X = Ausdruck/Floskel.
+ */
+export type GlossRole = 'S' | 'O' | 'V' | 'Q' | 'T' | 'L' | 'M' | 'X';
+
+/**
+ * Ein japanischer Satzteil: [Schreibweise, Kana (ganze Wörter aus `kana`, mit Leerzeichen),
+ * wörtliche Bedeutung, Rolle, Romaji (nur falls die automatische Umschrift falsch wäre)].
+ */
+export type GlossPart = [jp: string, kana: string, gloss: string, role: GlossRole, romaji?: string];
+
+/**
+ * Wort-für-Wort-Zuordnung eines Satzes: [Satz (jp), Teile, deutsche Übersetzung mit Markierungen].
+ * Markierung: „{Was|何} {machen Sie|です} {beruflich|お仕事}{?|か}“ – nach dem | steht der
+ * japanische Teil (oder #n = n-ter Teil, falls der Text doppelt vorkommt). Ohne Markierungen ergibt
+ * sich genau die Übersetzung `de` des Satzes.
+ */
+export type GlossEntry = [jp: string, parts: GlossPart[], de: string];

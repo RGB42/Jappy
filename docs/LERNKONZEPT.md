@@ -19,6 +19,7 @@ Max. 6 neue Ausdrücke pro Einheit (kognitive Belastung gering halten). Erst rez
 |---|---|---|
 | Hören zuerst / verstehbarer Input | Krashen | „Erst hören, dann lesen“, Hörgeschichten auf drei Niveaus |
 | Shadowing | Arguelles | Endlosschleife, Aufnahme + Vergleich, Aussprache-Check |
+| Farbige Satzanalyse (Interlinear-Glossierung) | Input Enhancement (Sharwood Smith), Noticing (Schmidt) | Shadowing: Satzglieder in Japanisch und Deutsch gleich gefärbt, Wort-für-Wort-Bedeutung, Antippen hebt Paare hervor; graue deutsche Wörter stehen nicht im Japanischen |
 | Output-Hypothese | Swain | Mikrofon in fast jeder Übung |
 | Aktives Abrufen | Roediger & Karpicke | Sprechkarten, Hörquiz, Rollenspiele ohne Vorlage |
 | Verteilte Wiederholung | Ebbinghaus, SM-2 | 4-Stufen-Bewertung, individuelle Intervalle |

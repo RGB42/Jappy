@@ -23,6 +23,14 @@
   --radius: 16px;
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-jp: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', 'Yu Gothic', Meiryo, sans-serif;
+  --role-S: #2563c9;
+  --role-O: #1f8a4c;
+  --role-V: #c8322f;
+  --role-Q: #8b3fc4;
+  --role-T: #c25e00;
+  --role-L: #0e7f86;
+  --role-M: #8a6d00;
+  --role-X: #b8337a;
   color-scheme: light;
 }
 
@@ -47,6 +55,14 @@
     --purple: #a88df0;
     --purple-soft: #2a2340;
     --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+    --role-S: #74a7ff;
+    --role-O: #5fd08f;
+    --role-V: #ff7a72;
+    --role-Q: #c495ff;
+    --role-T: #ffa24d;
+    --role-L: #45cfd6;
+    --role-M: #e3c552;
+    --role-X: #f286be;
     color-scheme: dark;
   }
 }
@@ -71,6 +87,14 @@
   --purple-soft: #2a2340;
   --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
   color-scheme: dark;
+  --role-S: #74a7ff;
+  --role-O: #5fd08f;
+  --role-V: #ff7a72;
+  --role-Q: #c495ff;
+  --role-T: #ffa24d;
+  --role-L: #45cfd6;
+  --role-M: #e3c552;
+  --role-X: #f286be;
 }
 
 * {
@@ -1767,4 +1791,155 @@ input[type='text'] {
   flex-direction: row;
   align-items: center;
   text-align: left;
+}
+
+/* ---- Satzbau: Japanisch ↔ Deutsch farbig zugeordnet ---- */
+.role-S { --rc: var(--role-S); }
+.role-O { --rc: var(--role-O); }
+.role-V { --rc: var(--role-V); }
+.role-Q { --rc: var(--role-Q); }
+.role-T { --rc: var(--role-T); }
+.role-L { --rc: var(--role-L); }
+.role-M { --rc: var(--role-M); }
+.role-X { --rc: var(--role-X); }
+.gloss {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.gloss-jp {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 6px 3px;
+}
+.gloss-chunk {
+  display: inline-grid;
+  justify-items: center;
+  gap: 1px;
+  min-width: 1.6em;
+  padding: 3px 5px 4px;
+  border: 0;
+  border-bottom: 3px solid var(--rc);
+  border-radius: 8px 8px 3px 3px;
+  background: color-mix(in srgb, var(--rc) 11%, transparent);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s, transform 0.15s;
+}
+.gloss-chunk.is-particle {
+  border-bottom-style: dashed;
+  border-bottom-width: 2px;
+  background: transparent;
+}
+.gloss-chunk.is-active,
+.gloss-seg.is-active {
+  background: color-mix(in srgb, var(--rc) 26%, transparent);
+  outline: 2px solid var(--rc);
+  outline-offset: 1px;
+}
+.gloss-chunk.is-active {
+  transform: translateY(-2px);
+}
+.gloss .is-dim {
+  opacity: 0.3;
+}
+.gloss-furi {
+  font-family: var(--font-jp);
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.1;
+}
+.gloss-word {
+  font-family: var(--font-jp);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--rc);
+}
+.gloss-chunk.is-particle .gloss-word {
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1.45;
+}
+.gloss-romaji {
+  font-size: 0.8rem;
+  color: var(--accent);
+  line-height: 1.2;
+}
+.gloss-mean {
+  max-width: 7.5em;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: var(--muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.gloss-chunk.is-particle .gloss-mean {
+  font-style: italic;
+}
+.gloss-punct {
+  align-self: flex-start;
+  font-family: var(--font-jp);
+  font-size: 1.4rem;
+  padding-top: 0.9rem;
+  color: var(--muted);
+}
+.gloss-de {
+  font-size: 1.05rem;
+  line-height: 2;
+  text-align: center;
+}
+.gloss-seg {
+  display: inline;
+  padding: 2px 3px;
+  border: 0;
+  border-bottom: 2px solid var(--rc);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--rc) 13%, transparent);
+  color: var(--rc);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+.gloss-free {
+  color: var(--muted);
+  transition: opacity 0.15s;
+}
+.gloss-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.gloss-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.gloss-key::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--rc);
+}
+.gloss-key-free::before {
+  background: transparent;
+  border: 1.5px solid var(--muted);
+}
+.gloss-toggle {
+  border: 0;
+  cursor: pointer;
+}
+.gloss-toggle.is-on {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
