@@ -109,6 +109,8 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
+  /* Kein „Ziehen zum Aktualisieren“: ein Tipp mit leichtem Verrutschen lud sonst die Seite neu (Firefox/Chrome mobil). */
+  overscroll-behavior-y: none;
 }
 [lang='ja'] {
   font-family: var(--font-jp);
