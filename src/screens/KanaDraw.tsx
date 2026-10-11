@@ -1,11 +1,13 @@
 // Kana schreiben: Zeichen hören, nachzeichnen (mit oder ohne Vorlage), grobe Bewertung.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SpeakButton, say } from '../components/Audio';
 import { Icon } from '../components/Icon';
+import { ResumeBanner } from '../components/Resume';
 import { Header, ProgressBar, Segmented, shuffle } from '../components/ui';
 import { kanaMnemonic } from '../data';
 import { kanaRomaji, kanaRows, rowChars, type KanaScript } from '../data/kana';
 import { maskFromCanvas, maskFromGlyph, scoreDrawing } from '../lib/drawing';
+import { useRouteResume } from '../lib/resume';
 import { useRoute } from '../lib/router';
 import { addXP, countDrawn, setKanaBox } from '../lib/store';
 
@@ -16,12 +18,15 @@ export function KanaDraw() {
   const { params } = useRoute();
   const script = (params.get('script') as KanaScript) ?? 'hiragana';
   const rowsParam = params.get('rows') ?? 'a';
-  const chars = useMemo(() => {
+  // Reihenfolge, Position und Modus werden gespeichert → später weitermachen.
+  const r = useRouteResume(`Kana schreiben: ${script === 'hiragana' ? 'Hiragana' : 'Katakana'}`);
+  const [chars] = r.field('chars', () => {
     const rows = rowsParam.split(',');
     return shuffle(kanaRows.filter((r) => rows.includes(r.id)).flatMap((r) => rowChars(r, script)));
-  }, [rowsParam, script]);
-  const [i, setI] = useState(0);
-  const [guide, setGuide] = useState<'trace' | 'memory'>('trace');
+  });
+  const [i, setI] = r.field('i', 0);
+  const [guide, setGuide] = r.field<'trace' | 'memory'>('guide', 'trace');
+  r.progress(i % chars.length, chars.length);
   const [score, setScore] = useState<number | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -111,6 +116,7 @@ export function KanaDraw() {
   return (
     <>
       <Header title="Kana schreiben" subtitle={`${script === 'hiragana' ? 'Hiragana' : 'Katakana'} · ${(i % chars.length) + 1}/${chars.length}`} />
+      <ResumeBanner r={r} />
       <ProgressBar value={(i % chars.length) + 1} max={chars.length} />
       <div className="stack mt">
         <Segmented

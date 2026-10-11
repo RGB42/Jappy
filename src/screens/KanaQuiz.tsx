@@ -2,9 +2,11 @@
 import { useMemo, useState } from 'react';
 import { SpeakButton, say } from '../components/Audio';
 import { Choices, Feedback } from '../components/Quiz';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, ProgressBar, shuffle } from '../components/ui';
 import { kanaMnemonic } from '../data';
 import { allKana, kanaRomaji, kanaRows, rowChars, soundKey, type KanaScript } from '../data/kana';
+import { useRouteResume } from '../lib/resume';
 import { back, useRoute } from '../lib/router';
 import { addXP, getState, markDone, setKanaBox } from '../lib/store';
 
@@ -47,20 +49,25 @@ export function KanaQuiz() {
     return kanaRows.filter((r) => ids.includes(r.id)).flatMap((r) => rowChars(r, script));
   }, [rowsParam, script]);
 
-  const [introIdx, setIntroIdx] = useState(params.get('intro') ? 0 : -1);
-  const [round, setRound] = useState(0);
-  const [current, setCurrent] = useState(() => pickNext(pool));
+  // Position wird gespeichert → nach Neuladen oder später weitermachen.
+  const r = useRouteResume(`Kana: ${script === 'hiragana' ? 'Hiragana' : 'Katakana'} ${mode === 'listen' ? 'hören' : 'lesen'}`);
+  const [introIdx, setIntroIdx] = r.field('introIdx', params.get('intro') ? 0 : -1);
+  const [round, setRound] = r.field('round', 0);
+  const [current, setCurrent] = r.field('current', () => pickNext(pool));
   const [answer, setAnswer] = useState<boolean | null>(null);
-  const [correctCount, setCorrectCount] = useState(0);
+  const [correctCount, setCorrectCount] = r.field('correctCount', 0);
+  const inIntro = introIdx >= 0 && introIdx < pool.length;
+  r.progress(inIntro ? introIdx : round, inIntro ? pool.length : ROUNDS);
   const options = useMemo(() => shuffle([current, ...distractors(current, pool, script)]), [current, pool, script, round]);
 
   const finished = round >= ROUNDS;
 
-  if (introIdx >= 0 && introIdx < pool.length) {
+  if (inIntro) {
     const k = pool[introIdx];
     return (
       <>
         <Header title="Neue Zeichen" subtitle={`${introIdx + 1} von ${pool.length} – hören, ansehen, nachsprechen`} />
+        <ResumeBanner r={r} />
         <ProgressBar value={introIdx} max={pool.length} />
         <div className="lesson-stage" key={k}>
           <div lang="ja" style={{ fontSize: '7rem', lineHeight: 1.1, fontFamily: 'var(--font-jp)' }}>
@@ -91,6 +98,7 @@ export function KanaQuiz() {
     setRound(nr);
     if (nr >= ROUNDS) {
       const score = (correctCount) / ROUNDS;
+      r.finish();
       markDone(`kana:${script}:${rowsParam}`, score);
       addXP(correctCount);
       return;
@@ -101,6 +109,7 @@ export function KanaQuiz() {
   return (
     <>
       <Header title={mode === 'listen' ? 'Kana hören' : 'Kana lesen'} subtitle={script === 'hiragana' ? 'Hiragana' : 'Katakana'} />
+      {!finished && <ResumeBanner r={r} />}
       {!finished && <ProgressBar value={round} max={ROUNDS} />}
 
       {finished ? (

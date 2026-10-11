@@ -1,13 +1,21 @@
 // Wiederholung (Spaced Repetition): Hörkarten und Sprechkarten.
 import { useMemo, useState } from 'react';
 import { SpeakButton, SpeechCheck, say, type SpeechCheckResult } from '../components/Audio';
+import { ResumeBanner } from '../components/Resume';
 import { Empty, Finish, Header, JpText, ProgressBar } from '../components/ui';
 import { TOPICS, itemById, sayText } from '../data';
 import { parseCardId, previewInterval, type Grade } from '../lib/srs';
+import { useResume, type Codec } from '../lib/resume';
 import { navigate } from '../lib/router';
 import { addXP, dueCards, getState, gradeCard, useSettings } from '../lib/store';
 
 const MAX = 30;
+
+/** Gespeicherte Karten-IDs; unbekannte (z. B. nach Zurücksetzen) werden verworfen. */
+const cardIds: Codec<string[]> = {
+  save: (ids) => ids,
+  load: (raw) => (Array.isArray(raw) ? raw.map(String).filter((id) => itemById.has(parseCardId(id).itemId)) : undefined),
+};
 
 export function Review() {
   const initial = useMemo(
@@ -18,14 +26,17 @@ export function Review() {
         .map((c) => c.id),
     [],
   );
-  const [queue, setQueue] = useState(initial);
-  const [pos, setPos] = useState(0);
+  // Runde wird gespeichert → nach Neuladen oder später weitermachen.
+  const r = useResume('/review', 'Wiederholen');
+  const [queue, setQueue] = r.field('queue', initial, cardIds);
+  const [pos, setPos] = r.field('pos', 0);
   const [revealed, setRevealed] = useState(false);
   const [suggested, setSuggested] = useState<Grade | null>(null);
-  const [stats, setStats] = useState({ done: 0, good: 0 });
+  const [stats, setStats] = r.field('stats', { done: 0, good: 0 });
+  r.progress(pos, queue.length);
   const settings = useSettings();
 
-  if (!initial.length) {
+  if (!queue.length) {
     return (
       <>
         <Header title="Wiederholen" />
@@ -68,6 +79,7 @@ export function Review() {
     setStats((s) => ({ done: s.done + 1, good: s.good + (g > 0 ? 1 : 0) }));
     // „Nochmal“: Karte kommt am Ende dieser Runde erneut.
     if (g === 0) setQueue((q) => [...q, id]);
+    if (pos + 1 >= queue.length + (g === 0 ? 1 : 0)) r.finish();
     setRevealed(false);
     setSuggested(null);
     setPos((p) => p + 1);
@@ -86,6 +98,7 @@ export function Review() {
         subtitle={`${TOPICS[item.topic].icon} ${TOPICS[item.topic].label}`}
         right={<span className="chip">{queue.length - pos}</span>}
       />
+      <ResumeBanner r={r} />
       <ProgressBar value={pos} max={queue.length} />
 
       <div className="lesson-stage" key={`${id}-${pos}`}>

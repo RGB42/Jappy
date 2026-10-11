@@ -1,27 +1,45 @@
 // Shadowing: Muttersprachler-Audio hören und zeitgleich bzw. direkt danach nachsprechen.
 // Eigene Aufnahme mit dem Original vergleichen → Aussprache, Rhythmus und Melodie verbessern.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SpeakButton, SpeechCheck, say, useRecorder } from '../components/Audio';
 import { GlossText, useGloss } from '../components/GlossText';
 import { Icon } from '../components/Icon';
+import { ResumeBanner } from '../components/Resume';
 import { Header, JpText, ProgressBar, Segmented, sample } from '../components/ui';
 import { sentencePool } from '../data';
-import type { Level } from '../data/types';
+import type { Level, Sentence } from '../data/types';
+import { useResume, type Codec } from '../lib/resume';
 import { wait } from '../lib/speech';
 import { addXP, countShadow, markDone, updateSettings, useAppState } from '../lib/store';
 
 const COUNT = 8;
 
+/** Zufällige Sätze; kurze Sätze für Einsteiger. */
+const pick = (level: Level) => sample(sentencePool(level).filter((s) => (level === 1 ? s.kana.length <= 22 : true)), COUNT);
+
+type PoolSentence = Sentence & { level: Level; source: string };
+const keyOf = (s: Sentence) => `${s.jp}|${s.de}`;
+let poolIndex: Map<string, PoolSentence> | null = null;
+/** Gespeichert werden nur Satz-Schlüssel (jp|de). */
+const sentenceCodec: Codec<PoolSentence[]> = {
+  save: (list) => list.map(keyOf),
+  load: (raw) => {
+    if (!Array.isArray(raw)) return undefined;
+    poolIndex ??= new Map(sentencePool().map((s) => [keyOf(s), s]));
+    const out = raw.map((k) => poolIndex!.get(String(k)));
+    return out.length && out.every(Boolean) ? (out as PoolSentence[]) : undefined;
+  },
+};
+
 export function Shadowing() {
   const state = useAppState();
-  const [level, setLevel] = useState<Level>(state.level);
+  // Niveau, Satzauswahl und Position werden gespeichert → später weitermachen.
+  const r = useResume('/shadow', 'Shadowing');
+  const [level, setLevel] = r.field<Level>('level', state.level);
   const [session, setSession] = useState(0);
-  const sentences = useMemo(() => {
-    // Kurze Sätze zuerst für Einsteiger.
-    const pool = sentencePool(level).filter((s) => (level === 1 ? s.kana.length <= 22 : true));
-    return sample(pool, COUNT);
-  }, [level, session]);
-  const [i, setI] = useState(0);
+  const [sentences, setSentences] = r.field('sentences', () => pick(level), sentenceCodec);
+  const [i, setI] = r.field('i', 0);
+  r.progress(i, sentences.length);
   const [looping, setLooping] = useState(false);
   const [showText, setShowText] = useState(!state.settings.audioFirst);
   const loopRef = useRef(false);
@@ -67,7 +85,9 @@ export function Shadowing() {
     const n = i + d;
     if (n >= sentences.length) {
       markDone(`shadow:${level}`, 1);
+      r.finish();
       setSession((x) => x + 1);
+      setSentences(pick(level));
       setI(0);
       return;
     }
@@ -81,6 +101,7 @@ export function Shadowing() {
         value={level}
         onChange={(v) => {
           setLevel(v);
+          setSentences(pick(v));
           setI(0);
         }}
         options={[
@@ -90,6 +111,7 @@ export function Shadowing() {
         ]}
       />
       <div className="mt">
+        <ResumeBanner r={r} />
         <ProgressBar value={i + 1} max={sentences.length} />
       </div>
 

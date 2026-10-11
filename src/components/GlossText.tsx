@@ -16,7 +16,7 @@ function loadGlosses(): Promise<Finder> {
 
 /** Satzanalyse zum Satz – null, solange sie lädt oder es keine gibt. */
 export function useGloss(s: Sentence | undefined): GlossEntry | null {
-  const [find, setFind] = useState<Finder | null>(finder);
+  const [find, setFind] = useState<Finder | null>(() => finder); // Funktion nicht als Initialisierer übergeben
   useEffect(() => {
     if (!find) void loadGlosses().then((f) => setFind(() => f), () => {});
   }, [find]);

@@ -2,12 +2,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { say } from '../components/Audio';
 import { Icon } from '../components/Icon';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText, ProgressBar, sample } from '../components/ui';
 import { allItems, itemById, sayText } from '../data';
 import type { LearnItem } from '../data/types';
 import { buildLessonScript, estimateSeconds, type Cue, type LessonItem } from '../lib/audioLesson';
 import { parseCardId } from '../lib/srs';
 import { speak, stopSpeaking, wait } from '../lib/speech';
+import { useRouteResume } from '../lib/resume';
 import { useRoute } from '../lib/router';
 import { addXP, dueCards, getState, introduceItems, isKnown, markDone } from '../lib/store';
 
@@ -41,15 +43,20 @@ function pickItems(explicit: string | null): LessonItem[] {
 
 export function AudioLesson() {
   const { params } = useRoute();
-  const [seed, setSeed] = useState(0);
-  const items = useMemo(() => pickItems(params.get('items')), [params, seed]);
+  // Inhalte und Position werden gespeichert → Lektion später an derselben Stelle fortsetzen.
+  const r = useRouteResume('Audio-Lektion');
+  const [items, setItems] = r.field('items', () => pickItems(params.get('items')));
   const cues = useMemo(() => buildLessonScript(items), [items]);
-  const [pos, setPos] = useState(0);
+  const [pos, setPos] = r.field('pos', 0);
+  r.progress(pos, cues.length - 1);
   const [playing, setPlaying] = useState(false);
   const [showText, setShowText] = useState(false);
   const [done, setDone] = useState(false);
   const run = useRef(0);
-  const posRef = useRef(0);
+  const posRef = useRef(pos);
+  useEffect(() => {
+    posRef.current = pos;
+  }, [pos]);
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null);
 
   useEffect(
@@ -115,6 +122,7 @@ export function AudioLesson() {
   };
 
   const finish = () => {
+    r.finish();
     const fresh = items.filter((i) => i.isNew).map((i) => i.id);
     if (fresh.length) introduceItems(fresh);
     markDone('audio-lesson', 1);
@@ -150,7 +158,7 @@ export function AudioLesson() {
               setDone(false);
               setPos(0);
               posRef.current = 0;
-              setSeed((s) => s + 1);
+              setItems(pickItems(params.get('items')));
             }}
           >
             Neue Lektion
@@ -165,6 +173,7 @@ export function AudioLesson() {
   return (
     <>
       <Header title="Audio-Lektion" subtitle={`Freihändig · ca. ${minutes} Min. · ${items.length} Ausdrücke`} />
+      <ResumeBanner r={r} />
       <ProgressBar value={pos} max={cues.length - 1} />
       <div className="lesson-stage">
         <div className="audio-lesson-phase">{playing ? label : pos === 0 ? 'Bereit' : 'Pausiert'}</div>

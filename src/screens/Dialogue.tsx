@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { SpeakButton, SpeechCheck, say } from '../components/Audio';
 import { Icon } from '../components/Icon';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText, Segmented } from '../components/ui';
 import { LEVELS, TOPICS, dialogueById, dialogues } from '../data';
 import type { Dialogue, Level } from '../data/types';
+import { useRouteResume, type Resume } from '../lib/resume';
 import { wait } from '../lib/speech';
 import { navigate, useRoute } from '../lib/router';
 import { addXP, markDone, useAppState, useSettings } from '../lib/store';
@@ -49,8 +51,10 @@ export function DialogueList() {
 export function DialoguePlayer() {
   const { params } = useRoute();
   const d = dialogueById.get(params.get('id') ?? '');
-  const [mode, setMode] = useState<'listen' | 'play'>('listen');
-  const [swap, setSwap] = useState(false);
+  // Modus, Rolle und Position im Rollenspiel werden gespeichert → später weitermachen.
+  const r = useRouteResume(`Rollenspiel: ${d?.title ?? ''}`);
+  const [mode, setMode] = r.field<'listen' | 'play'>('mode', 'listen');
+  const [swap, setSwap] = r.field('swap', false);
   const [run, setRun] = useState(0);
   if (!d) return <Header title="Dialog nicht gefunden" />;
   const userRole = swap ? (d.userRole === 'A' ? 'B' : 'A') : d.userRole;
@@ -77,11 +81,13 @@ export function DialoguePlayer() {
         ]}
       />
       <div className="mt">
+        {mode === 'play' && <ResumeBanner r={r} />}
         {mode === 'listen' ? (
           <ListenMode key={run} d={d} userRole={userRole} onDone={() => setMode('play')} />
         ) : (
           <PlayMode
             key={`${run}-${swap}`}
+            r={r}
             d={d}
             userRole={userRole}
             onRestart={() => setRun((r) => r + 1)}
@@ -162,19 +168,22 @@ function ListenMode({ d, userRole, onDone }: { d: Dialogue; userRole: 'A' | 'B';
 }
 
 function PlayMode({
+  r,
   d,
   userRole,
   onRestart,
   onSwap,
 }: {
+  r: Resume;
   d: Dialogue;
   userRole: 'A' | 'B';
   onRestart: () => void;
   onSwap: () => void;
 }) {
   const settings = useSettings();
-  const [pos, setPos] = useState(0);
-  const [scores, setScores] = useState<number[]>([]);
+  const [pos, setPos] = r.field('pos', 0);
+  const [scores, setScores] = r.field<number[]>('scores', []);
+  r.progress(Math.min(pos, d.lines.length), d.lines.length);
   const [hint, setHint] = useState(0); // 0 = nur Deutsch, 1 = Text, 2 = vorgesprochen
   const [answered, setAnswered] = useState(false);
   const alive = useRef(true);
@@ -204,6 +213,7 @@ function PlayMode({
   }, [pos, line, userRole]);
 
   useEffect(() => {
+    if (finished) r.finish();
     if (finished && d.lines.some((l) => l.role === userRole)) {
       const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
       markDone(`dialogue:${d.id}`, avg);

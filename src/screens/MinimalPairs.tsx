@@ -1,26 +1,43 @@
 // Minimalpaare: feine Lautunterschiede hören (langer Vokal, Doppelkonsonant …).
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { SpeakButton, say } from '../components/Audio';
 import { Feedback, registerAnswer } from '../components/Quiz';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText, ProgressBar, sample } from '../components/ui';
 import { minimalPairs } from '../data';
+import type { MinimalPair } from '../data/types';
+import { useResume, type Codec, type Resume } from '../lib/resume';
 import { addXP, markDone } from '../lib/store';
 
 const ROUNDS = 10;
 
+type Round = { p: MinimalPair; target: 'a' | 'b' };
+const pairById = new Map(minimalPairs.map((p) => [p.id, p]));
+const roundsCodec: Codec<Round[]> = {
+  save: (rounds) => rounds.map((x) => [x.p.id, x.target]),
+  load: (raw) => {
+    if (!Array.isArray(raw)) return undefined;
+    const out = raw.map((x) => (Array.isArray(x) && pairById.has(x[0]) ? { p: pairById.get(x[0])!, target: x[1] === 'b' ? 'b' : 'a' } : null));
+    return out.length && out.every(Boolean) ? (out as Round[]) : undefined;
+  },
+};
+
 export function MinimalPairs() {
+  const r = useResume('/pairs', 'Minimalpaare');
   const [session, setSession] = useState(0);
-  return <PairRound key={session} onAgain={() => setSession((s) => s + 1)} />;
+  return <PairRound key={session} r={r} onAgain={() => setSession((s) => s + 1)} />;
 }
 
-function PairRound({ onAgain }: { onAgain: () => void }) {
-  const rounds = useMemo(
-    () => sample(minimalPairs, Math.min(ROUNDS, minimalPairs.length)).map((p) => ({ p, target: Math.random() < 0.5 ? 'a' : 'b' as 'a' | 'b' })),
-    [],
+function PairRound({ r, onAgain }: { r: Resume; onAgain: () => void }) {
+  const [rounds] = r.field<Round[]>(
+    'rounds',
+    () => sample(minimalPairs, Math.min(ROUNDS, minimalPairs.length)).map((p) => ({ p, target: Math.random() < 0.5 ? 'a' : 'b' })),
+    roundsCodec,
   );
-  const [i, setI] = useState(0);
+  const [i, setI] = r.field('i', 0);
   const [chosen, setChosen] = useState<'a' | 'b' | null>(null);
-  const [correct, setCorrect] = useState(0);
+  const [correct, setCorrect] = r.field('correct', 0);
+  r.progress(i, rounds.length);
 
   if (!rounds.length) return <Header title="Minimalpaare" />;
 
@@ -50,6 +67,7 @@ function PairRound({ onAgain }: { onAgain: () => void }) {
   return (
     <>
       <Header title="Welches Wort hörst du?" subtitle={p.feature} />
+      <ResumeBanner r={r} />
       <ProgressBar value={i} max={rounds.length} />
       <div className="lesson-stage" key={i}>
         <SpeakButton text={targetS.jp} size="xl" autoPlay slowButton />
@@ -83,6 +101,7 @@ function PairRound({ onAgain }: { onAgain: () => void }) {
               className="btn btn-primary btn-block"
               onClick={() => {
                 if (i + 1 >= rounds.length) {
+                  r.finish();
                   markDone('pairs', correct / rounds.length);
                   addXP(correct * 2);
                 }

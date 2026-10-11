@@ -2,13 +2,17 @@
 import { useMemo, useState } from 'react';
 import { SpeakButton, SpeechCheck, say } from '../components/Audio';
 import { Feedback, MeaningChoices } from '../components/Quiz';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText, ProgressBar, shuffle } from '../components/ui';
 import { allItems, itemById, sayText } from '../data';
 import type { LearnItem } from '../data/types';
+import { idList, useRouteResume } from '../lib/resume';
 import { back, navigate, useRoute } from '../lib/router';
 import { addXP, introduceItems, useSettings } from '../lib/store';
 
 type Phase = 'intro' | 'quiz' | 'speak' | 'done';
+
+const itemCodec = idList((id) => itemById.get(id), (x: LearnItem) => x.id);
 
 export function LearnSession() {
   const { params } = useRoute();
@@ -16,11 +20,13 @@ export function LearnSession() {
     () => (params.get('items') ?? '').split(',').map((id) => itemById.get(id)).filter(Boolean) as LearnItem[],
     [params],
   );
-  const [phase, setPhase] = useState<Phase>('intro');
-  const [index, setIndex] = useState(0);
-  const [queue, setQueue] = useState<LearnItem[]>([]);
+  // Phase, Position und Reihenfolge werden gespeichert → nach Neuladen oder später weitermachen.
+  const r = useRouteResume(`Neue Ausdrücke: ${items.map((i) => i.de).slice(0, 2).join(', ')}${items.length > 2 ? ' …' : ''}`);
+  const [phase, setPhase] = r.field<Phase>('phase', 'intro');
+  const [index, setIndex] = r.field('index', 0);
+  const [queue, setQueue] = r.field<LearnItem[]>('queue', [], itemCodec);
   const [answered, setAnswered] = useState<boolean | null>(null);
-  const [mistakes, setMistakes] = useState(0);
+  const [mistakes, setMistakes] = r.field('mistakes', 0);
   const [heard, setHeard] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const settings = useSettings();
@@ -36,6 +42,7 @@ export function LearnSession() {
 
   const total = items.length * 3;
   const progress = phase === 'intro' ? index : phase === 'quiz' ? items.length + Math.min(index, items.length) : phase === 'speak' ? items.length * 2 + index : total;
+  r.progress(progress, total);
 
   const next = () => {
     setAnswered(null);
@@ -62,6 +69,7 @@ export function LearnSession() {
   };
 
   const finish = () => {
+    r.finish();
     introduceItems(items.map((i) => i.id));
     addXP(items.length * 5);
     setPhase('done');
@@ -72,6 +80,7 @@ export function LearnSession() {
   return (
     <>
       <Header title={title} subtitle={phase !== 'done' ? `${items.length} neue Ausdrücke` : undefined} />
+      {phase !== 'done' && <ResumeBanner r={r} />}
       {phase !== 'done' && <ProgressBar value={progress} max={total} />}
 
       {phase === 'intro' && (

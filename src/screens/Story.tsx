@@ -1,12 +1,14 @@
 // Hörgeschichten: verstehbarer Input knapp über dem eigenen Niveau (i+1).
 // Ablauf: 1. hören (ohne Text) → 2. Verständnisfragen → 3. mit Text nachhören.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { SpeakButton, say } from '../components/Audio';
 import { Icon } from '../components/Icon';
 import { Choices } from '../components/Quiz';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText } from '../components/ui';
 import { LEVELS, TOPICS, stories, storyById } from '../data';
 import type { Level, Story } from '../data/types';
+import { useRouteResume } from '../lib/resume';
 import { wait } from '../lib/speech';
 import { navigate, useRoute } from '../lib/router';
 import { addXP, getState, markDone, useAppState } from '../lib/store';
@@ -45,17 +47,28 @@ export function StoryList() {
 export function StoryPlayer() {
   const { params } = useRoute();
   const story = storyById.get(params.get('id') ?? '');
-  const [phase, setPhase] = useState<'listen' | 'questions' | 'text' | 'done'>('listen');
-  const [score, setScore] = useState(0);
+  // Phase und Fragen-Fortschritt werden gespeichert → später weitermachen.
+  const r = useRouteResume(`Geschichte: ${story?.title ?? ''}`);
+  const [phase, setPhase] = r.field<'listen' | 'questions' | 'text' | 'done'>('phase', 'listen');
+  const [score, setScore] = r.field('score', 0);
+  const [qi, setQi] = r.field('qi', 0);
+  const [qCorrect, setQCorrect] = r.field('qCorrect', 0);
   if (!story) return <Header title="Geschichte nicht gefunden" />;
+  const nq = story.questions.length;
+  r.progress(phase === 'listen' ? 0 : phase === 'questions' ? 1 + qi : nq + 2, nq + 3);
 
   return (
     <>
       <Header title={story.title} subtitle={story.titleJp} />
+      {phase !== 'done' && <ResumeBanner r={r} />}
       {phase === 'listen' && <ListenPhase story={story} onNext={() => setPhase('questions')} />}
       {phase === 'questions' && (
         <QuestionPhase
           story={story}
+          i={qi}
+          setI={setQi}
+          correct={qCorrect}
+          setCorrect={setQCorrect}
           onDone={(s) => {
             setScore(s);
             markDone(`story:${story.id}`, s);
@@ -64,7 +77,16 @@ export function StoryPlayer() {
           }}
         />
       )}
-      {phase === 'text' && <TextPhase story={story} score={score} onDone={() => setPhase('done')} />}
+      {phase === 'text' && (
+        <TextPhase
+          story={story}
+          score={score}
+          onDone={() => {
+            r.finish();
+            setPhase('done');
+          }}
+        />
+      )}
       {phase === 'done' && (
         <Finish title="Geschichte verstanden!" score={score} xp={15}>
           <button className="btn btn-primary btn-block" onClick={() => navigate('/stories')}>
@@ -137,10 +159,22 @@ function ListenPhase({ story, onNext }: { story: Story; onNext: () => void }) {
   );
 }
 
-function QuestionPhase({ story, onDone }: { story: Story; onDone: (score: number) => void }) {
-  const [i, setI] = useState(0);
+function QuestionPhase({
+  story,
+  i,
+  setI,
+  correct,
+  setCorrect,
+  onDone,
+}: {
+  story: Story;
+  i: number;
+  setI: (i: number) => void;
+  correct: number;
+  setCorrect: Dispatch<SetStateAction<number>>;
+  onDone: (score: number) => void;
+}) {
   const [answered, setAnswered] = useState<boolean | null>(null);
-  const [correct, setCorrect] = useState(0);
   const { active, toggle } = usePlayAll(story);
   const q = story.questions[i];
   return (

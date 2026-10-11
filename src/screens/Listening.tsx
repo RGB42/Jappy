@@ -2,9 +2,11 @@
 import { useMemo, useState } from 'react';
 import { SpeakButton } from '../components/Audio';
 import { Choices, Feedback, MeaningChoices } from '../components/Quiz';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText, ProgressBar, Segmented, sample, shuffle } from '../components/ui';
-import { allItems, sentencePool, sayText } from '../data';
-import type { LearnItem, Level } from '../data/types';
+import { allItems, itemById, sentencePool, sayText } from '../data';
+import type { LearnItem, Level, Sentence } from '../data/types';
+import { idList, useRouteResume, type Codec, type Resume } from '../lib/resume';
 import { navigate, useRoute } from '../lib/router';
 import { addXP, getState, isKnown, markDone, useAppState } from '../lib/store';
 
@@ -15,9 +17,11 @@ type Mode = 'words' | 'sentences';
 export function Listening() {
   const { params } = useRoute();
   const state = useAppState();
-  const [mode, setMode] = useState<Mode>((params.get('mode') as Mode) ?? 'words');
-  const [level, setLevel] = useState<Level>((Number(params.get('level')) as Level) || state.level);
-  const [started, setStarted] = useState(false);
+  // Auswahl und laufende Runde werden gespeichert → später weitermachen.
+  const r = useRouteResume('Hörtraining');
+  const [mode, setMode] = r.field<Mode>('mode', (params.get('mode') as Mode) ?? 'words');
+  const [level, setLevel] = r.field<Level>('level', (Number(params.get('level')) as Level) || state.level);
+  const [started, setStarted] = r.field('started', false);
   const [session, setSession] = useState(0);
   const again = () => setSession((x) => x + 1);
 
@@ -62,38 +66,47 @@ export function Listening() {
   }
 
   return mode === 'words' ? (
-    <WordRound key={session} level={level} onAgain={again} />
+    <WordRound key={session} r={r} level={level} onAgain={again} />
   ) : (
-    <SentenceRound key={session} level={level} onAgain={again} />
+    <SentenceRound key={session} r={r} level={level} onAgain={again} />
   );
 }
 
-function WordRound({ level, onAgain }: { level: Level; onAgain: () => void }) {
-  const items = useMemo(() => {
-    const s = getState();
-    const levelItems = allItems.filter((i) => i.level === level);
-    const known = levelItems.filter((i) => isKnown(s, i.id));
-    // Bevorzugt Bekanntes (Festigen), ergänzt um Neues (neugierig machen).
-    const pick = [...sample(known, 7), ...sample(levelItems.filter((i) => !isKnown(s, i.id)), ROUNDS)];
-    return pick.slice(0, ROUNDS);
-  }, [level]);
-  return <QuizRunner items={items} doneKey={`listen:words:${level}`} level={level} onAgain={onAgain} />;
+const itemCodec = idList((id) => itemById.get(id), (x: LearnItem) => x.id);
+
+function WordRound({ r, level, onAgain }: { r: Resume; level: Level; onAgain: () => void }) {
+  const [items] = r.field(
+    'items',
+    () => {
+      const s = getState();
+      const levelItems = allItems.filter((i) => i.level === level);
+      const known = levelItems.filter((i) => isKnown(s, i.id));
+      // Bevorzugt Bekanntes (Festigen), ergänzt um Neues (neugierig machen).
+      const pick = [...sample(known, 7), ...sample(levelItems.filter((i) => !isKnown(s, i.id)), ROUNDS)];
+      return pick.slice(0, ROUNDS);
+    },
+    itemCodec,
+  );
+  return <QuizRunner r={r} items={items} doneKey={`listen:words:${level}`} level={level} onAgain={onAgain} />;
 }
 
 function QuizRunner({
+  r,
   items,
   doneKey,
   level,
   onAgain,
 }: {
+  r: Resume;
   items: LearnItem[];
   doneKey: string;
   level: Level;
   onAgain: () => void;
 }) {
-  const [i, setI] = useState(0);
+  const [i, setI] = r.field('i', 0);
   const [answer, setAnswer] = useState<boolean | null>(null);
-  const [correct, setCorrect] = useState(0);
+  const [correct, setCorrect] = r.field('correct', 0);
+  r.progress(i, items.length);
 
   if (i >= items.length) {
     return (
@@ -111,6 +124,7 @@ function QuizRunner({
   return (
     <>
       <Header title="Was hörst du?" subtitle="Wörter" />
+      <ResumeBanner r={r} />
       <ProgressBar value={i} max={items.length} />
       <div className="lesson-stage" key={i}>
         <SpeakButton text={sayText(item)} size="xl" autoPlay slowButton />
@@ -134,6 +148,7 @@ function QuizRunner({
                 const last = i + 1 >= items.length;
                 if (last) {
                   const total = correct;
+                  r.finish();
                   markDone(doneKey, total / items.length);
                   addXP(total * 2);
                 }
@@ -150,9 +165,22 @@ function QuizRunner({
   );
 }
 
-function SentenceRound({ level, onAgain }: { level: Level; onAgain: () => void }) {
+type SentenceQ = { s: Sentence; options: string[] };
+const sentenceKey = (s: Sentence) => `${s.jp}|${s.de}`;
+/** Gespeichert: Satz-Schlüssel + Antwortoptionen. */
+const roundsCodec: Codec<SentenceQ[]> = {
+  save: (rounds) => rounds.map((q) => [sentenceKey(q.s), q.options]),
+  load: (raw) => {
+    if (!Array.isArray(raw)) return undefined;
+    const byKey = new Map(sentencePool().map((x) => [sentenceKey(x), x]));
+    const out = raw.map((x) => (Array.isArray(x) && byKey.has(x[0]) && Array.isArray(x[1]) ? { s: byKey.get(x[0])!, options: x[1].map(String) } : null));
+    return out.length && out.every(Boolean) ? (out as SentenceQ[]) : undefined;
+  },
+};
+
+function SentenceRound({ r, level, onAgain }: { r: Resume; level: Level; onAgain: () => void }) {
   const pool = useMemo(() => sentencePool(level), [level]);
-  const rounds = useMemo(() => {
+  const [rounds] = r.field<SentenceQ[]>('rounds', () => {
     const picked = sample(pool, ROUNDS);
     return picked.map((s) => {
       const wrong = sample(
@@ -161,10 +189,11 @@ function SentenceRound({ level, onAgain }: { level: Level; onAgain: () => void }
       ).map((p) => p.de);
       return { s, options: shuffle([s.de, ...wrong]) };
     });
-  }, [pool]);
-  const [i, setI] = useState(0);
+  }, roundsCodec);
+  const [i, setI] = r.field('i', 0);
   const [answer, setAnswer] = useState<boolean | null>(null);
-  const [correct, setCorrect] = useState(0);
+  const [correct, setCorrect] = r.field('correct', 0);
+  r.progress(i, rounds.length);
 
   if (i >= rounds.length) {
     return (
@@ -182,6 +211,7 @@ function SentenceRound({ level, onAgain }: { level: Level; onAgain: () => void }
   return (
     <>
       <Header title="Was bedeutet der Satz?" subtitle="Sätze" />
+      <ResumeBanner r={r} />
       <ProgressBar value={i} max={rounds.length} />
       <div className="lesson-stage" key={i}>
         <SpeakButton text={s.jp} size="xl" autoPlay slowButton />
@@ -203,6 +233,7 @@ function SentenceRound({ level, onAgain }: { level: Level; onAgain: () => void }
               className="btn btn-primary btn-block"
               onClick={() => {
                 if (i + 1 >= rounds.length) {
+                  r.finish();
                   markDone(`listen:sentences:${level}`, correct / rounds.length);
                   addXP(correct * 3);
                 }

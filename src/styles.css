@@ -1990,3 +1990,55 @@ input[type='password'] {
 .text-warn {
   color: var(--warn);
 }
+
+/* ---- Übungen fortsetzen ---- */
+.resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.continue-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.continue-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.continue-main .muted {
+  font-weight: 400;
+}
+.btn-icon-sm {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}

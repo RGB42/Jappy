@@ -2,13 +2,32 @@
 import { useMemo, useState } from 'react';
 import { SpeakButton, SpeechCheck, say } from '../components/Audio';
 import { Feedback, registerAnswer } from '../components/Quiz';
+import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText, ProgressBar, shuffle } from '../components/ui';
 import { grammar, grammarById } from '../data';
 import type { BuildExercise, Level, Tile } from '../data/types';
 import { PARTICLE_SOUND, exerciseSentence } from '../lib/sentences';
 import { toRomaji } from '../lib/kana';
+import { useRouteResume, type Codec } from '../lib/resume';
 import { back, useRoute } from '../lib/router';
 import { addXP, markDone, useSettings } from '../lib/store';
+
+// Übungen haben keine eigene ID → „Grammatik-ID#Nummer“.
+const exerciseKeys = new Map<BuildExercise, string>();
+const exerciseByKey = new Map<string, BuildExercise>();
+for (const g of grammar)
+  g.exercises.forEach((ex, n) => {
+    exerciseKeys.set(ex, `${g.id}#${n}`);
+    exerciseByKey.set(`${g.id}#${n}`, ex);
+  });
+const exerciseCodec: Codec<BuildExercise[]> = {
+  save: (list) => list.map((ex) => exerciseKeys.get(ex) ?? ''),
+  load: (raw) => {
+    if (!Array.isArray(raw)) return undefined;
+    const out = raw.map((k) => exerciseByKey.get(String(k)));
+    return out.length && out.every(Boolean) ? (out as BuildExercise[]) : undefined;
+  },
+};
 
 export function Builder() {
   const { params } = useRoute();
@@ -20,10 +39,13 @@ export function Builder() {
     return shuffle(grammar.filter((x) => !level || x.level === level).flatMap((x) => x.exercises)).slice(0, 8);
   }, [g, level]);
 
-  const [queue, setQueue] = useState<BuildExercise[]>(initial);
-  const [i, setI] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
+  // Reihenfolge, Position und Fehler werden gespeichert → später weitermachen.
+  const r = useRouteResume(g ? `Satzbau: ${g.title}` : 'Satzbau-Mix');
+  const [queue, setQueue] = r.field<BuildExercise[]>('queue', initial, exerciseCodec);
+  const [i, setI] = r.field('i', 0);
+  const [mistakes, setMistakes] = r.field('mistakes', 0);
   const [finished, setFinished] = useState(false);
+  r.progress(i, queue.length);
 
   if (!initial.length) return <Header title="Satzbau" />;
 
@@ -47,6 +69,7 @@ export function Builder() {
   return (
     <>
       <Header title={g ? g.title : 'Satzbau-Mix'} subtitle={g?.pattern} />
+      <ResumeBanner r={r} />
       <ProgressBar value={i} max={queue.length} />
       <Exercise
         key={i}
@@ -59,6 +82,7 @@ export function Builder() {
           if (i + 1 >= queue.length + (ok ? 0 : 1)) {
             if (g) markDone(`grammar:${g.id}`, Math.max(0, 1 - (mistakes + (ok ? 0 : 1)) / initial.length));
             addXP(10);
+            r.finish();
             setFinished(true);
           } else setI(i + 1);
         }}

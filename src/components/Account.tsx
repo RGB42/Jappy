@@ -1,6 +1,7 @@
 // Online-Konto: anmelden/registrieren, Sync-Status, Fortschritt zwischen Handy und PC abgleichen.
 import { useEffect, useState, type FormEvent } from 'react';
 import { cloudConfigured } from '../lib/cloud';
+import { ago } from '../lib/time';
 import {
   deleteAccount,
   describe,
@@ -15,15 +16,6 @@ import {
   useSyncStatus,
   type Summary,
 } from '../lib/sync';
-
-function ago(ts: number): string {
-  if (!ts) return 'noch nie';
-  const s = Math.round((Date.now() - ts) / 1000);
-  if (s < 45) return 'gerade eben';
-  if (s < 3600) return `vor ${Math.round(s / 60)} Min.`;
-  if (s < 86400) return `vor ${Math.round(s / 3600)} Std.`;
-  return new Date(ts).toLocaleDateString('de-DE');
-}
 
 /** Aktualisiert die „vor x Min.“-Anzeige regelmäßig. */
 function useTick(ms: number) {

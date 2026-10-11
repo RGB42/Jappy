@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { SpeakButton } from '../components/Audio';
 import { Icon } from '../components/Icon';
+import { ContinueCard } from '../components/Resume';
 import { ProgressBar, Ring, Tile } from '../components/ui';
 import { phrases } from '../data';
 import { CHEST_REWARD, levelInfo, mascotMessage, questProgress, questsFor, totalXP } from '../lib/game';
@@ -75,6 +76,8 @@ export function Home() {
           <div className="small">{mascot.de}</div>
         </div>
       </div>
+
+      <ContinueCard />
 
       {state.goal && f ? (
         <button className="card goal-card btn-block stack" style={{ textAlign: 'left', cursor: 'pointer' }} onClick={() => navigate('/goal')}>
