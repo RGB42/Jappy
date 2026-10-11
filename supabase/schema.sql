@@ -9,6 +9,8 @@ create table if not exists public.progress (
   updated_at timestamptz not null default now()
 );
 
+-- Nur angemeldete Nutzer – nicht angemeldete (anon) haben gar keinen Zugriff.
+revoke all on public.progress from anon;
 grant select, insert, update on public.progress to authenticated;
 
 -- Jede Person sieht und ändert nur ihre eigene Zeile.
@@ -19,13 +21,14 @@ drop policy if exists "eigener Fortschritt anlegen" on public.progress;
 drop policy if exists "eigener Fortschritt ändern" on public.progress;
 
 create policy "eigener Fortschritt lesen" on public.progress
-  for select using (auth.uid() = user_id);
+  for select to authenticated using ((select auth.uid()) = user_id);
 create policy "eigener Fortschritt anlegen" on public.progress
-  for insert with check (auth.uid() = user_id);
+  for insert to authenticated with check ((select auth.uid()) = user_id);
 create policy "eigener Fortschritt ändern" on public.progress
-  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 -- Konto löschen (Button in den Einstellungen): entfernt Nutzer und Fortschritt.
+-- SECURITY DEFINER ist hier gewollt (auth.users ist sonst nicht erreichbar) – gelöscht wird nur das eigene Konto (auth.uid()).
 create or replace function public.delete_account()
 returns void
 language sql

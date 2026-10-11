@@ -70,22 +70,18 @@ beim Öffnen der App und beim Zurückkehren. Wurde auf zwei Geräten offline ge�
 XP, Yen und Zähler werden addiert, bei Karteikarten zählt die neuere Wiederholung, und Abzeichen und Käufe bleiben erhalten.
 Ohne Konto funktioniert alles wie bisher, nur lokal.
 
-Als Online-Speicher dient [Supabase](https://supabase.com). Der kostenlose Tarif reicht, die Daten liegen in der EU.
-Einmalig einrichten:
+Als Online-Speicher dient das [Supabase](https://supabase.com)-Projekt **Jappy** (kostenloser Tarif, Region Frankfurt).
+Es ist fertig eingerichtet:
 
-1. Bei Supabase ein Projekt anlegen, Region **Frankfurt (eu-central-1)**.
-2. *SQL Editor* öffnen, den Inhalt von [`supabase/schema.sql`](supabase/schema.sql) einfügen und ausführen. Das legt die
-   Tabelle `progress` an, nur für den eigenen Nutzer lesbar (Row Level Security), plus die Funktion zum Löschen des Kontos.
-3. *Authentication → URL Configuration*:
-   - **Site URL** auf `https://rgb42.github.io/Jappy/` setzen.
-   - Dieselbe Adresse unter **Redirect URLs** eintragen.
-   - E-Mail-Bestätigung kann an bleiben; der Link meldet direkt in der App an.
-4. *Project Settings → API*: **Project URL** und **anon public key** kopieren.
-5. Auf GitHub unter *Settings → Secrets and variables → Actions → Variables* zwei Repository-Variablen anlegen:
-   `SUPABASE_URL` und `SUPABASE_ANON_KEY`. Danach den Deploy-Workflow neu starten.
-
-Der anon key ist öffentlich gedacht, geschützt wird über Row Level Security. Lokal geht es über eine `.env.local` mit
-`VITE_SUPABASE_URL=…` und `VITE_SUPABASE_ANON_KEY=…`.
+- Die Tabelle `progress` aus [`supabase/schema.sql`](supabase/schema.sql) ist mit Row Level Security geschützt: Jede Person
+  sieht nur ihre eigene Zeile, ohne Anmeldung gibt es keinen Zugriff.
+- *Site URL* und *Redirect URLs* zeigen auf `https://rgb42.github.io/Jappy/`, damit E-Mail-Links direkt in der App anmelden.
+- Projekt-URL und Publishable Key sind in `src/lib/cloud.ts` eingebaut. Der Key ist öffentlich gedacht, geschützt wird
+  über RLS. Für ein anderes Projekt lassen sich beim Build `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` setzen,
+  per `.env.local` oder über die Repository-Variablen `SUPABASE_URL`/`SUPABASE_ANON_KEY`.
+- Nach der Registrierung kommt eine Bestätigungsmail. Der eingebaute Mailversand von Supabase ist im Gratis-Tarif
+  begrenzt: wenige Mails pro Stunde, nur an Adressen von Mitgliedern des Supabase-Teams. Für weitere Nutzer unter
+  *Authentication → SMTP* einen eigenen Mailserver eintragen.
 
 ## Tipps
 

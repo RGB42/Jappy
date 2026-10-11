@@ -1,5 +1,5 @@
 // Online-Konto über Supabase (Auth + eine Tabelle „progress“) – schlanker Client nur mit fetch.
-// Konfiguration beim Build: VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY (siehe README, supabase/schema.sql).
+// Konfiguration: eingebautes Projekt, überschreibbar beim Build mit VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.
 
 export interface CloudUser {
   id: string;
@@ -30,10 +30,14 @@ export class CloudError extends Error {
   }
 }
 
-const env = import.meta.env as Record<string, string | undefined>;
+// Projekt „Jappy“ (Frankfurt). Der Publishable Key ist öffentlich gedacht – geschützt wird per Row Level Security.
+const DEFAULT_URL = 'https://dlevblahpmmbwydflxck.supabase.co';
+const DEFAULT_KEY = 'sb_publishable_PNahbzA_5393qR15rtHQlA_I7emJnFq';
+
+const env = (import.meta.env ?? {}) as Record<string, string | undefined>;
 const config = {
-  url: (env.VITE_SUPABASE_URL ?? '').replace(/\/+$/, ''),
-  key: env.VITE_SUPABASE_ANON_KEY ?? '',
+  url: (env.VITE_SUPABASE_URL || DEFAULT_URL).replace(/\/+$/, ''),
+  key: env.VITE_SUPABASE_ANON_KEY || DEFAULT_KEY,
 };
 
 /** Für Tests: andere Server-Adresse setzen. */
@@ -49,7 +53,8 @@ export const appUrl = () => (typeof location !== 'undefined' ? location.origin +
 
 async function call<T>(path: string, init: RequestInit & { token?: string; prefer?: string } = {}): Promise<T> {
   const headers: Record<string, string> = { apikey: config.key, 'Content-Type': 'application/json' };
-  headers.Authorization = `Bearer ${init.token ?? config.key}`;
+  // Nutzer-Token nur, wenn angemeldet (der Publishable Key ist kein JWT und gehört nur in „apikey“).
+  if (init.token) headers.Authorization = `Bearer ${init.token}`;
   if (init.prefer) headers.Prefer = init.prefer;
   let res: Response;
   try {
