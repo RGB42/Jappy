@@ -5,7 +5,7 @@ import { SpeakButton, SpeechCheck, say, useRecorder } from '../components/Audio'
 import { GlossText, useGloss } from '../components/GlossText';
 import { Icon } from '../components/Icon';
 import { ResumeBanner } from '../components/Resume';
-import { Header, JpText, ProgressBar, Segmented, sample } from '../components/ui';
+import { Header, JpText, ProgressBar, sample } from '../components/ui';
 import { sentencePool } from '../data';
 import type { Level, Sentence } from '../data/types';
 import { useResume, type Codec } from '../lib/resume';
@@ -94,46 +94,46 @@ export function Shadowing() {
     setI(Math.max(0, n));
   };
 
+  const changeLevel = (v: Level) => {
+    setLevel(v);
+    setSentences(pick(v));
+    setI(0);
+  };
+
   return (
     <>
-      <Header title="Shadowing" subtitle="Hören – mitsprechen – vergleichen" />
-      <Segmented
-        value={level}
-        onChange={(v) => {
-          setLevel(v);
-          setSentences(pick(v));
-          setI(0);
-        }}
-        options={[
-          { value: 1, label: 'Einsteiger' },
-          { value: 2, label: 'Grundstufe' },
-          { value: 3, label: 'Fortgeschr.' },
-        ]}
+      <Header
+        title="Shadowing"
+        right={
+          <select className="select-chip" value={level} onChange={(e) => changeLevel(Number(e.target.value) as Level)} aria-label="Niveau">
+            <option value={1}>Einsteiger</option>
+            <option value={2}>Grundstufe</option>
+            <option value={3}>Fortgeschritten</option>
+          </select>
+        }
       />
-      <div className="mt">
-        <ResumeBanner r={r} />
+      <ResumeBanner r={r} />
+      <div className="progress-row">
         <ProgressBar value={i + 1} max={sentences.length} />
+        <span className="muted small">
+          {i + 1}/{sentences.length}
+        </span>
       </div>
 
-      <div className="card stack mt" key={`${session}-${i}`}>
-        <div className="row between">
-          <span className="chip">{s.source}</span>
-          <span className="row gap-s">
-            {gloss && showText && (
-              <button
-                type="button"
-                className={`chip gloss-toggle ${glossOn ? 'is-on' : ''}`}
-                onClick={() => updateSettings({ glossView: !state.settings.glossView })}
-                aria-pressed={glossOn}
-                title="Welches deutsche Wort gehört zu welchem japanischen?"
-              >
-                🎨 Satzbau
-              </button>
-            )}
-            <span className="muted small">
-              {i + 1}/{sentences.length}
-            </span>
-          </span>
+      <div className="card tight stack mt" key={`${session}-${i}`}>
+        <div className="row between gap-s">
+          <span className="chip ellipsis">{s.source}</span>
+          {gloss && showText && (
+            <button
+              type="button"
+              className={`chip gloss-toggle ${glossOn ? 'is-on' : ''}`}
+              onClick={() => updateSettings({ glossView: !state.settings.glossView })}
+              aria-pressed={glossOn}
+              title="Welches deutsche Wort gehört zu welchem japanischen?"
+            >
+              🎨 Satzbau
+            </button>
+          )}
         </div>
         <div className="col center gap">
           <SpeakButton text={s.jp} size="xl" slowButton autoPlay />
@@ -148,28 +148,27 @@ export function Shadowing() {
           )}
         </div>
 
-        <div className="section-title">1 · Mitsprechen</div>
-        <p className="muted small" style={{ marginTop: -6 }}>
-          Starte die Schleife und sprich <b>gleichzeitig</b> oder direkt danach mit. Ahme Melodie und Rhythmus nach – nicht nur
-          die Wörter.
-        </p>
-        <button className={`btn ${looping ? 'btn-accent' : ''}`} onClick={startLoop}>
-          <Icon name={looping ? 'stop' : 'repeat'} size={18} /> {looping ? 'Schleife stoppen' : 'Endlosschleife starten'}
-        </button>
-
-        <div className="section-title">2 · Aufnehmen & vergleichen</div>
-        <div className="row gap wrap">
-          <button className={`btn ${rec.recording ? 'btn-primary' : ''}`} onClick={() => (rec.recording ? rec.stop() : rec.start())}>
-            <Icon name={rec.recording ? 'stop' : 'record'} size={18} /> {rec.recording ? 'Stopp' : 'Aufnehmen'}
+        {/* Mitsprechen · Aufnehmen · Vergleichen – kompakt in einer Zeile */}
+        <div className="tool-row">
+          <button className={`tool-btn ${looping ? 'is-on' : ''}`} onClick={startLoop} title="Endlosschleife: gleichzeitig mitsprechen">
+            <Icon name={looping ? 'stop' : 'repeat'} size={20} />
+            {looping ? 'Stopp' : 'Schleife'}
           </button>
-          <button className="btn" disabled={!rec.url} onClick={compare}>
-            <Icon name="play" size={18} /> Original + ich
+          <button className={`tool-btn ${rec.recording ? 'is-rec' : ''}`} onClick={() => (rec.recording ? rec.stop() : rec.start())} title="Eigene Stimme aufnehmen">
+            <Icon name={rec.recording ? 'stop' : 'record'} size={20} />
+            {rec.recording ? 'Stopp' : 'Aufnehmen'}
+          </button>
+          <button className="tool-btn" disabled={!rec.url} onClick={compare} title="Original und eigene Aufnahme nacheinander hören">
+            <Icon name="play" size={20} />
+            Vergleichen
           </button>
         </div>
+        {looping && <div className="muted small center">Sprich gleichzeitig mit – Melodie und Rhythmus nachahmen.</div>}
         {rec.error && <div className="text-bad small">{rec.error}</div>}
 
-        <div className="section-title">3 · Aussprache prüfen</div>
         <SpeechCheck
+          compact
+          prompt="Aussprache prüfen"
           targets={[s.jp, s.kana]}
           onResult={(r) => {
             addXP(r.grade === 'retry' ? 1 : 3);
@@ -179,9 +178,9 @@ export function Shadowing() {
         />
       </div>
 
-      <div className="row gap mt">
-        <button className="btn grow" onClick={() => next(-1)} disabled={i === 0}>
-          <Icon name="back" size={18} /> Zurück
+      <div className="action-bar">
+        <button className="btn btn-square" onClick={() => next(-1)} disabled={i === 0} aria-label="Vorheriger Satz">
+          <Icon name="back" size={20} />
         </button>
         <button className="btn btn-primary grow" onClick={() => next(1)}>
           {i + 1 >= sentences.length ? 'Neue Sätze' : 'Nächster Satz'} <Icon name="next" size={18} />

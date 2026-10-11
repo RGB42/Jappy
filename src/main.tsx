@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { loadAudioIndex, unlockAudio } from './lib/audioBank';
+import { startAutoScroll } from './lib/autoScroll';
 import { preventPullToRefresh } from './lib/noPullRefresh';
 import { startSync } from './lib/sync';
 import './styles.css';
@@ -19,6 +20,7 @@ window.addEventListener('pointerdown', unlockAudio, { once: true, capture: true 
 
 // Versehentliches Neuladen durch Wischen nach unten verhindern (sonst geht die laufende Übung verloren).
 preventPullToRefresh();
+startAutoScroll();
 
 // Fortschritt mit dem Online-Konto abgleichen (falls eingerichtet und angemeldet).
 startSync();

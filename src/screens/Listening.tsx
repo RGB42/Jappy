@@ -143,6 +143,7 @@ function QuizRunner({
             <Feedback ok={answer} />
             <JpText s={item} center showDe />
             <button
+              data-autoscroll
               className="btn btn-primary btn-block"
               onClick={() => {
                 const last = i + 1 >= items.length;
@@ -230,6 +231,7 @@ function SentenceRound({ r, level, onAgain }: { r: Resume; level: Level; onAgain
             <Feedback ok={answer} />
             <JpText s={s} center showDe />
             <button
+              data-autoscroll
               className="btn btn-primary btn-block"
               onClick={() => {
                 if (i + 1 >= rounds.length) {

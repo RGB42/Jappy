@@ -75,7 +75,7 @@ export function LearnSession() {
     setPhase('done');
   };
 
-  const title = { intro: 'Neu: Hören & Nachsprechen', quiz: 'Was bedeutet das?', speak: 'Jetzt du: Sag es auf Japanisch', done: 'Fertig' }[phase];
+  const title = { intro: 'Hören & nachsprechen', quiz: 'Was bedeutet das?', speak: 'Sag es auf Japanisch', done: 'Fertig' }[phase];
 
   return (
     <>
@@ -114,7 +114,7 @@ export function LearnSession() {
             <div className="stack" style={{ width: '100%' }}>
               <Feedback ok={answered}>{answered ? 'Richtig! ✓' : 'Nicht ganz – kommt gleich noch mal.'}</Feedback>
               <JpText s={queue[index]} center showDe />
-              <button className="btn btn-primary btn-block" onClick={next}>
+              <button data-autoscroll className="btn btn-primary btn-block" onClick={next}>
                 Weiter
               </button>
             </div>

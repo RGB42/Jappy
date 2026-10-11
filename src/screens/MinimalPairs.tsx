@@ -98,6 +98,7 @@ function PairRound({ r, onAgain }: { r: Resume; onAgain: () => void }) {
             </div>
             <p className="muted small center">Vergleiche beide – hörst du den Unterschied?</p>
             <button
+              data-autoscroll
               className="btn btn-primary btn-block"
               onClick={() => {
                 if (i + 1 >= rounds.length) {

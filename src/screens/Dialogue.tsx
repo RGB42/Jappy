@@ -1,7 +1,7 @@
 // Rollenspiele: echte Situationen durchspielen (aufgabenbasiertes Lernen).
 // Erst anhören, dann selbst eine Rolle sprechen – die App spielt die andere.
 import { useEffect, useRef, useState } from 'react';
-import { SpeakButton, SpeechCheck, say } from '../components/Audio';
+import { SpeechCheck, say } from '../components/Audio';
 import { Icon } from '../components/Icon';
 import { ResumeBanner } from '../components/Resume';
 import { Finish, Header, JpText, Segmented } from '../components/ui';
@@ -63,9 +63,9 @@ export function DialoguePlayer() {
   return (
     <>
       <Header title={d.title} subtitle={d.titleJp} />
-      <div className="card mb">
-        <div className="small">🎬 {d.situation}</div>
-        <div className="muted small mt">
+      <div className="card tight mb small">
+        {mode === 'listen' && <div className="mb-s">🎬 {d.situation}</div>}
+        <div className="muted">
           Du bist: <b>{roleName(userRole).nameDe}</b> <span lang="ja">（{roleName(userRole).name}）</span>
         </div>
       </div>
@@ -272,7 +272,7 @@ function PlayMode({
           <div className="row gap-s wrap">
             {hint < 1 && (
               <button className="btn btn-small" onClick={() => setHint(1)}>
-                💡 Text zeigen
+                💡 Text
               </button>
             )}
             <button
@@ -284,9 +284,19 @@ function PlayMode({
             >
               🔊 Vorsprechen
             </button>
-            <SpeakButton text={line.jp} size="sm" slowButton />
+            <button
+              className="btn btn-small"
+              aria-label="Langsam vorsprechen"
+              onClick={() => {
+                setHint(2);
+                void say(line.jp, { slow: true });
+              }}
+            >
+              🐢
+            </button>
           </div>
           <SpeechCheck
+            compact
             targets={[line.jp, line.kana, ...(line.accept ?? [])]}
             prompt="Sprich deine Zeile"
             onResult={(r) => {

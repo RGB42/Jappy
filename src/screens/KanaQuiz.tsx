@@ -163,7 +163,7 @@ export function KanaQuiz() {
                 <span lang="ja">{current}</span> = {kanaRomaji(current)}
                 {!answer && kanaMnemonic(current) && <div className="small" style={{ fontWeight: 400 }}>💡 {kanaMnemonic(current)}</div>}
               </Feedback>
-              <button className="btn btn-primary btn-block" onClick={next}>
+              <button data-autoscroll className="btn btn-primary btn-block" onClick={next}>
                 Weiter
               </button>
             </div>

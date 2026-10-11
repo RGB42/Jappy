@@ -165,7 +165,7 @@ function Exercise({ ex, onDone }: { ex: BuildExercise; onDone: (ok: boolean) => 
             </div>
           </div>
           <SpeechCheck targets={[sentence.jp, sentence.kana]} compact prompt="Sprich den Satz" />
-          <button className="btn btn-primary btn-block" onClick={() => onDone(result)}>
+          <button data-autoscroll className="btn btn-primary btn-block" onClick={() => onDone(result)}>
             Weiter
           </button>
         </div>

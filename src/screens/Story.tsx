@@ -198,6 +198,7 @@ function QuestionPhase({
       />
       {answered !== null && (
         <button
+          data-autoscroll
           className="btn btn-primary btn-block"
           onClick={() => {
             if (i + 1 >= story.questions.length) onDone(correct / story.questions.length);
